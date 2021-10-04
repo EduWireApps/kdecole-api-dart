@@ -2,19 +2,19 @@ import 'dart:convert';
 
 import 'package:html/parser.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:http/http.dart' as http;
 import 'package:kdecole_api/kdecole_api.dart';
 import 'package:kdecole_api/src/entities/email.dart';
 import 'package:kdecole_api/src/entities/userinfo.dart';
 import 'package:request/request.dart';
-import 'package:http/http.dart' as http;
 
 import 'entities/message.dart';
 
 class Client {
-  var url;
+  late final String url;
   Urls urls;
-  var username;
-  var password;
+  final String username;
+  final String password;
   late String token;
   Map<String, String> header = {};
 
@@ -23,7 +23,7 @@ class Client {
     login();
   }
 
-  Client.fromToken(this.token, this.urls){
+  Client.fromToken(this.token, this.urls, this.url, this.username, this.password){
     url = enumToUrl(urls);
     header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
   }
@@ -51,9 +51,9 @@ class Client {
     var json = jsonDecode((await invokeApi(url+'messagerie/boiteReception/', header, 'GET')).body);
     var emails = json['communications'] as List<dynamic>;
     List<Email> ret = [];
-    emails.forEach((element) {
+    for (var element in emails) {
       ret.add(Email(convert.convert(element['objet']), convert.convert(element['premieresLignes']), convert.convert(element['expediteurInitial']['libelle']), '', element['id'], []));
-    });
+    }
     return ret;
   }
   Future<Email> getFullEmail(Email email) async {
@@ -61,19 +61,19 @@ class Client {
     var json = jsonDecode((await invokeApi(url+'messagerie/communication/'+email.id.toString()+'/', header, 'GET')).body);
     var convert = HtmlUnescape();
     var messagesList = json['participations'] as List<dynamic>;
-    messagesList.forEach((element) {
+    for (var element in messagesList) {
       print(element);
 
       final String parsedString = parse(convert.convert(element['corpsMessage'])).documentElement!.text;
       messages.add(Message(parsedString, element['redacteur']['libelle'], DateTime.fromMillisecondsSinceEpoch(int.parse(element['dateEnvoi'].toString()))));
-    });
+    }
 
 
     return Email(convert.convert(json['objet']), convert.convert(json['premieresLignes']), convert.convert(json['expediteurInitial']['libelle']), convert.convert(json['participants'][0]['libelle']), json['id'], messages);
 
   }
 
-  void delog() async {
+  void unlog() async {
     invokeApi(url+'desactivation/', header, 'GET');
   }
 

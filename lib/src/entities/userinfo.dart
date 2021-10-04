@@ -1,7 +1,7 @@
 class UserInfo{
 
-  var fullName;
-  var etab;
+  final String fullName;
+  final String etab;
 
   UserInfo(this.fullName, this.etab);
 

@@ -1,12 +1,12 @@
 import 'message.dart';
 
 class Email{
-  var _title;
-  var _body;
-  var _sender;
-  var _receivers;
-  var _id;
-  var _messages;
+  final String _title;
+  final String _body;
+  final String _sender;
+  final String _receivers;
+  final int _id;
+  final List<Message> _messages;
   Email(this._title, this._body, this._sender, this._receivers, this._id, this._messages);
 
   String get title {

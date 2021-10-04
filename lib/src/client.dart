@@ -13,72 +13,94 @@ import 'entities/message.dart';
 class Client {
   late final String url;
   Urls urls;
-  final String username;
-  final String password;
   late String token;
   Map<String, String> header = {};
 
-  Client(this.urls, this.username, this.password){
+  Client(this.urls, username, password) {
     url = enumToUrl(urls);
-    login();
+    login(username, password);
   }
 
-  Client.fromToken(this.token, this.urls, this.url, this.username, this.password){
+  Client.fromToken(this.token, this.urls) {
     url = enumToUrl(urls);
     header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
   }
 
-  Future<String> login() async {
-    var rep = await invokeApi(url+username+'/'+password, {}, 'GET');
+  Future<String> login(String username, String password) async {
+    var rep = await invokeApi(url + username + '/' + password, {}, 'GET');
     var json = jsonDecode(rep.body);
     print(json['authtoken']);
-    if(json['authtoken'] == null){
+    if (json['authtoken'] == null) {
       return 'An error as occured';
-    }else {
+    } else {
       token = json['authtoken'];
-      header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers':'3.7.14'});
+      header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
       return 'Succesfuly connected';
     }
   }
 
   Future<UserInfo> getUserData() async {
-    var json = jsonDecode((await invokeApi(url+'infoutilisateur/', header, 'GET')).body);
+    var json = jsonDecode(
+        (await invokeApi(url + 'infoutilisateur/', header, 'GET')).body);
     print(json['nom']);
     return UserInfo(json['nom'], json['etabs'][0]['nom']);
   }
+
   Future<List<Email>?> getEmails() async {
     var convert = HtmlUnescape();
-    var json = jsonDecode((await invokeApi(url+'messagerie/boiteReception/', header, 'GET')).body);
+    var json = jsonDecode(
+        (await invokeApi(url + 'messagerie/boiteReception/', header, 'GET'))
+            .body);
     var emails = json['communications'] as List<dynamic>;
     List<Email> ret = [];
     for (var element in emails) {
-      ret.add(Email(convert.convert(element['objet']), convert.convert(element['premieresLignes']), convert.convert(element['expediteurInitial']['libelle']), '', element['id'], []));
+      ret.add(Email(
+          convert.convert(element['objet']),
+          convert.convert(element['premieresLignes']),
+          convert.convert(element['expediteurInitial']['libelle']),
+          '',
+          element['id'], []));
     }
     return ret;
   }
+
   Future<Email> getFullEmail(Email email) async {
     var messages = <Message>[];
-    var json = jsonDecode((await invokeApi(url+'messagerie/communication/'+email.id.toString()+'/', header, 'GET')).body);
+    var json = jsonDecode((await invokeApi(
+            url + 'messagerie/communication/' + email.id.toString() + '/',
+            header,
+            'GET'))
+        .body);
     var convert = HtmlUnescape();
     var messagesList = json['participations'] as List<dynamic>;
     for (var element in messagesList) {
       print(element);
 
-      final String parsedString = parse(convert.convert(element['corpsMessage'])).documentElement!.text;
-      messages.add(Message(parsedString, element['redacteur']['libelle'], DateTime.fromMillisecondsSinceEpoch(int.parse(element['dateEnvoi'].toString()))));
+      final String parsedString =
+          parse(convert.convert(element['corpsMessage'])).documentElement!.text;
+      messages.add(Message(
+          parsedString,
+          element['redacteur']['libelle'],
+          DateTime.fromMillisecondsSinceEpoch(
+              int.parse(element['dateEnvoi'].toString()))));
     }
 
-
-    return Email(convert.convert(json['objet']), convert.convert(json['premieresLignes']), convert.convert(json['expediteurInitial']['libelle']), convert.convert(json['participants'][0]['libelle']), json['id'], messages);
-
+    return Email(
+        convert.convert(json['objet']),
+        convert.convert(json['premieresLignes']),
+        convert.convert(json['expediteurInitial']['libelle']),
+        convert.convert(json['participants'][0]['libelle']),
+        json['id'],
+        messages);
   }
 
   void unlog() async {
-    invokeApi(url+'desactivation/', header, 'GET');
+    invokeApi(url + 'desactivation/', header, 'GET');
   }
 
-  Future<Response> invokeApi(var url, Map<String, String> headers, var method, {var body}) async{
-    switch (method){
+  Future<Response> invokeApi(var url, Map<String, String> headers, var method,
+      {var body}) async {
+    switch (method) {
       case 'GET':
         return await http.get(Uri.parse(url), headers: headers);
       case 'POST':

@@ -1,39 +1,47 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+This is an **UNOFFICIAL** wrapper for the kdecole api
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
+# How to use ?
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
+## Login
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+First, you need to create a Client() object : <br>
+### **LOGIN AND PASSWORD ARE NOT YOUR ENT ONES. TEMPORARY USERNAME AND PASSWORD GIVEN TO INIT THE MOBILE APP SHALL BE USED**
+````dart
+var client = Client(Urls.<your CAS>, 'your username', 'your password');
+````
+or if you already have a token :
+````dart
+var client = Client.fromToken('tokennnnnn', Urls.<your CAS>);
+````
+Now you're logged !!
 
-## Features
+To unlog :
+````dart
+await client.unlog();
+````
+## Messaging
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+### Get the mail box
 
-## Getting started
+Of course, you need to have a Client() object, <br>
+Next, just get an email list :
+````dart
+var list = await client.getEmails();
+````
+It returns you a list of emails which first lines of the first message can be seen. This contains the id, the expeditor and the receivers.
+**WARNING** you can't get the full messages body by this way
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+### Get details of an email
 
-## Usage
+From your email object, you just need to do :
+````dart
+await client.getFullEmail(youremail);
+````
+It will return you another email which contains all the data from the given one, plus the whole discussion, in a list of Message objects
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+### The message object
 
-```dart
-const like = 'sample';
-```
-
-## Additional information
-
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+You can get from it :
+- The sender
+- The date
+- The message

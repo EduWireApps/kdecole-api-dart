@@ -94,6 +94,10 @@ class Client {
         messages);
   }
 
+  Future<void> sendEmail(String body, Email emailToRespond) async{
+    await invokeApi('$url messagerie/communication/nouvelleParticipation/${emailToRespond.id}/', header, 'PUT');
+  }
+
   void unlog() async {
     invokeApi(url + 'desactivation/', header, 'GET');
   }

@@ -1,12 +1,12 @@
 class Message{
-  final String _expeditor;
+  final String _sender;
   final String _body;
   final DateTime _date;
 
-  Message(this._body, this._expeditor, this._date);
+  Message(this._body, this._sender, this._date);
 
-  String get expeditor{
-    return _expeditor;
+  String get sender{
+    return _sender;
   }
   String get body{
     return _body;

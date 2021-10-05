@@ -21,11 +21,15 @@ class Client {
     login(username, password);
   }
 
+
+  //Create this object if you already have a token
   Client.fromToken(this.token, this.urls) {
     url = enumToUrl(urls);
     header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
   }
 
+
+  //Login with temporary username and password
   Future<String> login(String username, String password) async {
     var rep = await invokeApi(url + username + '/' + password, {}, 'GET');
     var json = jsonDecode(rep.body);
@@ -39,6 +43,7 @@ class Client {
     }
   }
 
+  //To get name, school or class
   Future<UserInfo> getUserData() async {
     var json = jsonDecode(
         (await invokeApi(url + 'infoutilisateur/', header, 'GET')).body);
@@ -46,6 +51,8 @@ class Client {
     return UserInfo(json['nom'], json['etabs'][0]['nom']);
   }
 
+
+  //Get the messaging emails, only a preview of them
   Future<List<Email>?> getEmails() async {
     var convert = HtmlUnescape();
     var json = jsonDecode(
@@ -64,6 +71,7 @@ class Client {
     return ret;
   }
 
+  //Get all the details of an Email, with the full body
   Future<Email> getFullEmail(Email email) async {
     var messages = <Message>[];
     var json = jsonDecode((await invokeApi(
@@ -94,10 +102,15 @@ class Client {
         messages);
   }
 
+  //Send an email
+
+  //TODO test this feature
   Future<void> sendEmail(String body, Email emailToRespond) async{
     await invokeApi('$url messagerie/communication/nouvelleParticipation/${emailToRespond.id}/', header, 'PUT');
   }
 
+
+  //To unlog you, you need to re-get a token after that
   void unlog() async {
     invokeApi(url + 'desactivation/', header, 'GET');
   }
@@ -119,6 +132,7 @@ class Client {
         return await http.get(Uri.parse(url), headers: headers);
     }
   }
+
 
   String enumToUrl(Urls url) {
     switch (url) {
@@ -158,6 +172,8 @@ class Client {
   }
 }
 
+
+//List of cas' urls
 enum Urls {
   monBureauNumerique,
   monEntOccitanie,

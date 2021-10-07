@@ -5,6 +5,7 @@ import 'package:html_unescape/html_unescape.dart';
 import 'package:http/http.dart' as http;
 import 'package:kdecole_api/kdecole_api.dart';
 import 'package:kdecole_api/src/entities/email.dart';
+import 'package:kdecole_api/src/entities/homework.dart';
 import 'package:kdecole_api/src/entities/userinfo.dart';
 import 'package:request/request.dart';
 
@@ -15,21 +16,28 @@ class Client {
   Urls urls;
   late String token;
   Map<String, String> header = {};
+  late UserInfo info;
 
   Client(this.urls, username, password) {
     url = enumToUrl(urls);
     login(username, password);
   }
 
-
-  //Create this object if you already have a token
+  ///Create this object if you already have a token
   Client.fromToken(this.token, this.urls) {
     url = enumToUrl(urls);
     header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
   }
 
+  Future<void> setUserData() async {
+    var json = jsonDecode(
+        (await invokeApi(url + 'infoutilisateur/', header, 'GET')).body);
+    print(json);
+    info = UserInfo(json['nom'], json['etabs'][0]['nom'],
+        int.parse(json['idEtablissementSelectionne']));
+  }
 
-  //Login with temporary username and password
+  ///Login with temporary username and password
   Future<String> login(String username, String password) async {
     var rep = await invokeApi(url + username + '/' + password, {}, 'GET');
     var json = jsonDecode(rep.body);
@@ -43,16 +51,12 @@ class Client {
     }
   }
 
-  //To get name, school or class
+  ///To get name, school or class
   Future<UserInfo> getUserData() async {
-    var json = jsonDecode(
-        (await invokeApi(url + 'infoutilisateur/', header, 'GET')).body);
-    print(json['nom']);
-    return UserInfo(json['nom'], json['etabs'][0]['nom']);
+    return info;
   }
 
-
-  //Get the messaging emails, only a preview of them
+  ///Get the messaging emails, only a preview of them
   Future<List<Email>?> getEmails() async {
     var convert = HtmlUnescape();
     var json = jsonDecode(
@@ -71,7 +75,7 @@ class Client {
     return ret;
   }
 
-  //Get all the details of an Email, with the full body
+  ///Get all the details of an Email, with the full body
   Future<Email> getFullEmail(Email email) async {
     var messages = <Message>[];
     var json = jsonDecode((await invokeApi(
@@ -102,37 +106,100 @@ class Client {
         messages);
   }
 
-  //Send an email
+  ///Send an email
 
   //TODO test this feature
-  Future<void> sendEmail(String body, Email emailToRespond) async{
-    await invokeApi('$url messagerie/communication/nouvelleParticipation/${emailToRespond.id}/', header, 'PUT');
+  Future<void> sendEmail(String body, Email emailToRespond) async {
+    await invokeApi(
+        url +
+            'messagerie/communication/nouvelleParticipation/${emailToRespond.id}/',
+        header,
+        'PUT',
+        body: body);
   }
 
+  ///Get the homeworks
+  Future<List<HomeWork>> getHomeworks() async {
+    var json = jsonDecode((await invokeApi(
+            url + 'travailAFaire/idetablissement/${info.id}/', header, 'GET'))
+        .body);
+    print(json);
+    var homeworks = json['listeTravaux'] as List<dynamic>;
+    var ret = <HomeWork>[];
+    for (var element in homeworks) {
+      var date = DateTime.fromMillisecondsSinceEpoch(element['date']);
+      for (var e in element['listTravail']) {
+        ret.add(HomeWork(
+            e['titre'],
+            e['type'],
+            e['matiere'],
+            e['temps'],
+            e['flagRealise'],
+            int.parse(e['uid']),
+            int.parse(e['uidSeance']),
+            date));
+      }
+    }
 
-  //To unlog you, you need to re-get a token after that
+    return ret;
+  }
+
+  ///Get all the details of a Homework
+  Future<HomeWork> getFullHomework(HomeWork hw) async {
+    var convert = HtmlUnescape();
+    var json = jsonDecode((await invokeApi(
+            url +
+                'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
+            header,
+            'GET'))
+        .body);
+    print(json);
+    final String parsedString =
+        parse(convert.convert(json['codeHTML'])).documentElement!.text;
+    return HomeWork(
+        parsedString,
+        json['type'],
+        json['matiere'],
+        hw.estimatedTime,
+        json['flagRealise'],
+        hw.uuid,
+        hw.sessionUuid,
+        DateTime.fromMillisecondsSinceEpoch(json['date']));
+  }
+
+  ///To mark an homework as done or not
+  ///A full hw (got by the getFullHomework() method isn't needed
+  Future<void> setHomeWorkStatus(HomeWork hw, bool newState) async {
+    var json = (await invokeApi(
+        url +
+            'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
+        header,
+        'PUT', body: '{"flagRealise":$newState}')).body;
+    print(json);
+  }
+
+  ///To unlog you, you need to re-get a token after that
   void unlog() async {
     invokeApi(url + 'desactivation/', header, 'GET');
   }
 
-  Future<Response> invokeApi(var url, Map<String, String> headers, var method,
+  Future<Response> invokeApi(var url, Map<String, String> header, var method,
       {var body}) async {
     switch (method) {
       case 'GET':
-        return await http.get(Uri.parse(url), headers: headers);
+        return await http.get(Uri.parse(url), headers: header);
       case 'POST':
-        return await http.post(Uri.parse(url), headers: headers, body: body);
+        return await http.post(Uri.parse(url), headers: header, body: body);
       case 'DELETE':
-        return await http.delete(Uri.parse(url), headers: headers, body: body);
+        return await http.delete(Uri.parse(url), headers: header, body: body);
       case 'PUT':
-        return await http.put(Uri.parse(url), headers: headers, body: body);
+        return await http.put(Uri.parse(url), headers: header, body: body);
       case 'PATCH':
-        return await http.patch(Uri.parse(url), headers: headers, body: body);
+        return await http.patch(Uri.parse(url), headers: header, body: body);
       default:
-        return await http.get(Uri.parse(url), headers: headers);
+        return await http.get(Uri.parse(url), headers: header);
     }
   }
-
 
   String enumToUrl(Urls url) {
     switch (url) {
@@ -172,8 +239,7 @@ class Client {
   }
 }
 
-
-//List of cas' urls
+///List of cas' urls
 enum Urls {
   monBureauNumerique,
   monEntOccitanie,

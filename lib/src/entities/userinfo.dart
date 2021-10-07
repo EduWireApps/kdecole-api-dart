@@ -1,14 +1,18 @@
 class UserInfo{
 
-  final String fullName;
-  final String etab;
+  final String _fullName;
+  final String _etab;
+  final int _id;
 
-  UserInfo(this.fullName, this.etab);
+  UserInfo(this._fullName, this._etab, this._id);
 
   String get name{
-    return fullName;
+    return _fullName;
   }
   String get establishment{
-    return etab;
+    return _etab;
+  }
+  int get id{
+    return _id;
   }
 }

@@ -1,7 +1,8 @@
 name: kdecole_api
 description: An unofficial api for kdecole and Kosmos suite
 version: 1.0.0
-# homepage: https://www.example.com
+homepage: https://github.com/EduWireApps/kdecole-api-dart
+# Maintained by Freezman31 <https://github.com/Freezman31>
 
 environment:
   sdk: '>=2.14.1 <3.0.0'

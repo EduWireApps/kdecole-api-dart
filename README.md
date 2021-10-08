@@ -45,3 +45,34 @@ You can get from it :
 - The sender
 - The date
 - The message
+
+##Homeworks
+
+### Get the homeworks
+
+As well as the messaging, this method only return you the first lines of the homework :
+
+```dart
+var homeworksList = await client.getHomeworks;
+```
+
+It will return you a list of homeworks
+
+### Get the full homework
+
+```dart
+var hw = client.getFullHomework(oldHw);
+```
+It will return you the new Hw with the full body 
+
+### Homework object
+
+You can get from it :
+- The content
+- The type
+- The subject
+- The estimated time (if given by the professor)
+- The status (is realised)
+- The uuid
+- The uuid of the session
+- the Date

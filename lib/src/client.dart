@@ -2,19 +2,19 @@ part of '../kdecole_api.dart';
 
 class Client {
   late final String url;
-  Urls urls;
+  final casUrl urls;
   late String token;
   Map<String, String> header = {};
   late UserInfo info;
 
   Client(this.urls, username, password) {
-    url = enumToUrl(urls);
+    url = _enumToUrl(urls);
     login(username, password);
   }
 
   ///Create this object if you already have a token
   Client.fromToken(this.token, this.urls) {
-    url = enumToUrl(urls);
+    url = _enumToUrl(urls);
     header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
   }
 
@@ -188,46 +188,46 @@ class Client {
     }
   }
 
-  String enumToUrl(Urls url) {
+  String _enumToUrl(casUrl url) {
     switch (url) {
-      case Urls.agora06:
+      case casUrl.agora06:
         return 'https://mobilite.agora06.fr/mobilite/';
-      case Urls.arsene76:
+      case casUrl.arsene76:
         return 'https://mobilite.arsene76.fr/mobilite/';
-      case Urls.auCollege84Vaucluse:
+      case casUrl.auCollege84Vaucluse:
         return 'https://mobilite.aucollege84.vaucluse.fr/mobilite/';
-      case Urls.auvergneRhoneAlpes:
+      case casUrl.auvergneRhoneAlpes:
         return 'https://mobilite.ent.auvergnerhonealpes.fr/mobilite/';
-      case Urls.cyberColleges42:
+      case casUrl.cyberColleges42:
         return 'https://mobilite.cybercolleges42.fr/mobilite/';
-      case Urls.demo:
+      case casUrl.demo:
         return 'https://mobilite.demo.skolengo.com/mobilite/';
-      case Urls.eclatBfc:
+      case casUrl.eclatBfc:
         return 'https://mobilite.eclat-bfc.fr/mobilite/';
-      case Urls.eCollegeHauteGaronne:
+      case casUrl.eCollegeHauteGaronne:
         return 'https://mobilite.ecollege.haute-garonne.fr/mobilite/';
-      case Urls.ent27:
+      case casUrl.ent27:
         return 'https://mobilite.ent27.fr/mobilite/';
-      case Urls.entCreuse:
+      case casUrl.entCreuse:
         return 'https://mobilite.entcreuse.fr/mobilite/';
-      case Urls.kosmosEducation:
+      case casUrl.kosmosEducation:
         return 'https://mobilite.kosmoseducation.com/mobilite/';
-      case Urls.monBureauNumerique:
+      case casUrl.monBureauNumerique:
         return 'https://mobilite.monbureaunumerique.fr/mobilite/';
-      case Urls.monCollegeValdoise:
+      case casUrl.monCollegeValdoise:
         return 'https://mobilite.moncollege.valdoise.fr/mobilite/';
-      case Urls.monEntOccitanie:
+      case casUrl.monEntOccitanie:
         return 'https://mobilite.mon-ent-occitanie.fr/mobilite/';
-      case Urls.savoirsNumeriques62:
+      case casUrl.savoirsNumeriques62:
         return 'https://mobilite.savoirsnumeriques62.fr/mobilite/';
-      case Urls.webCollegeSeineSaintDenis:
+      case casUrl.webCollegeSeineSaintDenis:
         return 'https://mobilite.webcollege.seinesaintdenis.fr/mobilite/';
     }
   }
 }
 
 ///List of cas' urls
-enum Urls {
+enum casUrl {
   monBureauNumerique,
   monEntOccitanie,
   arsene76,

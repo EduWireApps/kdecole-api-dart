@@ -1,29 +1,14 @@
 class HomeWork {
-  final String _content;
-  final String _type;
-  final String _subject;
-  final int _estimatedTime;
-  final bool _isRealised;
-  final int _uuid;
-  final int _sessionUuid;
-  final DateTime _date;
+  final String content;
+  final String type;
+  final String subject;
+  final int estimatedTime;
+  final bool isRealised;
+  final int uuid;
+  final int sessionUuid;
+  final DateTime date;
 
-  HomeWork(this._content, this._type,
-      this._subject, this._estimatedTime, this._isRealised, this._uuid, this._sessionUuid, this._date);
+  HomeWork({required this.content,required this.type,
+  required this.subject,required this.estimatedTime,required this.isRealised,required this.uuid,required this.sessionUuid,required this.date});
 
-  int get sessionUuid => _sessionUuid;
-
-  int get uuid => _uuid;
-
-  bool get isRealised => _isRealised;
-
-  int get estimatedTime => _estimatedTime;
-
-  String get subject => _subject;
-
-  String get type => _type;
-
-  String get content => _content;
-
-  DateTime get date => _date;
 }

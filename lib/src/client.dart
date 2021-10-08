@@ -33,8 +33,8 @@ class Client {
     var json = jsonDecode(
         (await _invokeApi('infoutilisateur/', header, 'GET')).body);
     print(json);
-    info = UserInfo(json['nom'], json['etabs'][0]['nom'],
-        int.parse(json['idEtablissementSelectionne']));
+    info = UserInfo(fullName: json['nom'], etab: json['etabs'][0]['nom'],
+        id: int.parse(json['idEtablissementSelectionne']));
   }
 
   ///Login with temporary username and password
@@ -66,11 +66,11 @@ class Client {
     List<Email> ret = [];
     for (var element in emails) {
       ret.add(Email(
-          convert.convert(element['objet']),
-          convert.convert(element['premieresLignes']),
-          convert.convert(element['expediteurInitial']['libelle']),
-          '',
-          element['id'], []));
+          title: convert.convert(element['objet']),
+          body: convert.convert(element['premieresLignes']),
+          sender: convert.convert(element['expediteurInitial']['libelle']),
+          receivers: '',
+          id: element['id'],messages:  []));
     }
     return ret;
   }
@@ -91,19 +91,19 @@ class Client {
       final String parsedString =
           parse(convert.convert(element['corpsMessage'])).documentElement!.text;
       messages.add(Message(
-          parsedString,
-          element['redacteur']['libelle'],
-          DateTime.fromMillisecondsSinceEpoch(
+          body: parsedString,
+          sender: element['redacteur']['libelle'],
+          date: DateTime.fromMillisecondsSinceEpoch(
               int.parse(element['dateEnvoi'].toString()))));
     }
 
     return Email(
-        convert.convert(json['objet']),
-        convert.convert(json['premieresLignes']),
-        convert.convert(json['expediteurInitial']['libelle']),
-        convert.convert(json['participants'][0]['libelle']),
-        json['id'],
-        messages);
+        title: convert.convert(json['objet']),
+        body: convert.convert(json['premieresLignes']),
+        sender: convert.convert(json['expediteurInitial']['libelle']),
+        receivers: convert.convert(json['participants'][0]['libelle']),
+        id: json['id'],
+        messages: messages);
   }
 
   ///Send an email
@@ -129,14 +129,14 @@ class Client {
       var date = DateTime.fromMillisecondsSinceEpoch(element['date']);
       for (var e in element['listTravail']) {
         ret.add(HomeWork(
-            e['titre'],
-            e['type'],
-            e['matiere'],
-            e['temps'],
-            e['flagRealise'],
-            int.parse(e['uid']),
-            int.parse(e['uidSeance']),
-            date));
+            content: e['titre'],
+            type: e['type'],
+            subject: e['matiere'],
+            estimatedTime: e['temps'],
+            isRealised: e['flagRealise'],
+            uuid: int.parse(e['uid']),
+            sessionUuid: int.parse(e['uidSeance']),
+            date: date));
       }
     }
 
@@ -155,14 +155,14 @@ class Client {
     final String parsedString =
         parse(convert.convert(json['codeHTML'])).documentElement!.text;
     return HomeWork(
-        parsedString,
-        json['type'],
-        json['matiere'],
-        hw.estimatedTime,
-        json['flagRealise'],
-        hw.uuid,
-        hw.sessionUuid,
-        DateTime.fromMillisecondsSinceEpoch(json['date']));
+        content: parsedString,
+        type: json['type'],
+        subject: json['matiere'],
+        estimatedTime: hw.estimatedTime,
+        isRealised: json['flagRealise'],
+        uuid: hw.uuid,
+        sessionUuid: hw.sessionUuid,
+        date: DateTime.fromMillisecondsSinceEpoch(json['date']));
   }
 
   ///To mark an homework as done or not

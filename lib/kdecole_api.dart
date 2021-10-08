@@ -1,9 +1,16 @@
 library kdecole_api;
 
-export 'src/client.dart';
-export 'src/entities/userinfo.dart';
-export 'src/utils/utils.dart';
-export 'src/entities/email.dart';
-export 'src/entities/message.dart';
+import 'dart:convert';
+
+import 'package:html/parser.dart';
+import 'package:html_unescape/html_unescape.dart';
+import 'package:http/http.dart' as http;
+import 'package:request/request.dart';
+
+part 'src/client.dart';
+part 'src/entities/email.dart';
+part 'src/entities/homework.dart';
+part 'src/entities/message.dart';
+part 'src/entities/userinfo.dart';
 
 

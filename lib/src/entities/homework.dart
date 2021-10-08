@@ -1,3 +1,5 @@
+part of '../../kdecole_api.dart';
+
 class HomeWork {
   final String content;
   final String type;

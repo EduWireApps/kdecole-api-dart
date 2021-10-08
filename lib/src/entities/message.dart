@@ -1,3 +1,5 @@
+part of '../../kdecole_api.dart';
+
 class Message{
   final String sender;
   final String body;

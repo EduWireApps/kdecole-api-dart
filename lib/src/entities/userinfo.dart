@@ -1,3 +1,5 @@
+part of '../../kdecole_api.dart';
+
 class UserInfo{
 
   final String fullName;

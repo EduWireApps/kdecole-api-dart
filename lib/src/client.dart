@@ -1,15 +1,4 @@
-import 'dart:convert';
-
-import 'package:html/parser.dart';
-import 'package:html_unescape/html_unescape.dart';
-import 'package:http/http.dart' as http;
-import 'package:kdecole_api/kdecole_api.dart';
-import 'package:kdecole_api/src/entities/email.dart';
-import 'package:kdecole_api/src/entities/homework.dart';
-import 'package:kdecole_api/src/entities/userinfo.dart';
-import 'package:request/request.dart';
-
-import 'entities/message.dart';
+part of '../kdecole_api.dart';
 
 class Client {
   late final String url;

@@ -1,4 +1,4 @@
-import 'message.dart';
+part of '../../kdecole_api.dart';
 
 class Email{
   final String title;

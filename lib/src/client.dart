@@ -179,7 +179,7 @@ class Client {
   }
 
   ///To unlog you, you need to re-get a token after that
-  void unlog() async {
+  void logout() async {
     invokeApi(url + 'desactivation/', header, 'GET');
   }
 

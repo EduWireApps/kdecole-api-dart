@@ -31,7 +31,7 @@ class Client {
 
   Future<void> setUserData() async {
     var json = jsonDecode(
-        (await invokeApi(url + 'infoutilisateur/', header, 'GET')).body);
+        (await _invokeApi('infoutilisateur/', header, 'GET')).body);
     print(json);
     info = UserInfo(json['nom'], json['etabs'][0]['nom'],
         int.parse(json['idEtablissementSelectionne']));
@@ -39,7 +39,7 @@ class Client {
 
   ///Login with temporary username and password
   Future<String> login(String username, String password) async {
-    var rep = await invokeApi(url + username + '/' + password, {}, 'GET');
+    var rep = await _invokeApi(username + '/' + password, {}, 'GET');
     var json = jsonDecode(rep.body);
     print(json['authtoken']);
     if (json['authtoken'] == null) {
@@ -60,7 +60,7 @@ class Client {
   Future<List<Email>?> getEmails() async {
     var convert = HtmlUnescape();
     var json = jsonDecode(
-        (await invokeApi(url + 'messagerie/boiteReception/', header, 'GET'))
+        (await _invokeApi('messagerie/boiteReception/', header, 'GET'))
             .body);
     var emails = json['communications'] as List<dynamic>;
     List<Email> ret = [];
@@ -78,8 +78,8 @@ class Client {
   ///Get all the details of an Email, with the full body
   Future<Email> getFullEmail(Email email) async {
     var messages = <Message>[];
-    var json = jsonDecode((await invokeApi(
-            url + 'messagerie/communication/' + email.id.toString() + '/',
+    var json = jsonDecode((await _invokeApi(
+            'messagerie/communication/' + email.id.toString() + '/',
             header,
             'GET'))
         .body);
@@ -110,9 +110,8 @@ class Client {
 
   //TODO test this feature
   Future<void> sendEmail(String body, Email emailToRespond) async {
-    await invokeApi(
-        url +
-            'messagerie/communication/nouvelleParticipation/${emailToRespond.id}/',
+    await _invokeApi(
+        'messagerie/communication/nouvelleParticipation/${emailToRespond.id}/',
         header,
         'PUT',
         body: body);
@@ -120,8 +119,8 @@ class Client {
 
   ///Get the homeworks
   Future<List<HomeWork>> getHomeworks() async {
-    var json = jsonDecode((await invokeApi(
-            url + 'travailAFaire/idetablissement/${info.id}/', header, 'GET'))
+    var json = jsonDecode((await _invokeApi(
+            'travailAFaire/idetablissement/${info.id}/', header, 'GET'))
         .body);
     print(json);
     var homeworks = json['listeTravaux'] as List<dynamic>;
@@ -147,9 +146,8 @@ class Client {
   ///Get all the details of a Homework
   Future<HomeWork> getFullHomework(HomeWork hw) async {
     var convert = HtmlUnescape();
-    var json = jsonDecode((await invokeApi(
-            url +
-                'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
+    var json = jsonDecode((await _invokeApi(
+        'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
             header,
             'GET'))
         .body);
@@ -170,8 +168,7 @@ class Client {
   ///To mark an homework as done or not
   ///A full hw (got by the getFullHomework() method isn't needed
   Future<void> setHomeWorkStatus(HomeWork hw, bool newState) async {
-    var json = (await invokeApi(
-        url +
+    var json = (await _invokeApi(
             'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
         header,
         'PUT', body: '{"flagRealise":$newState}')).body;
@@ -180,24 +177,25 @@ class Client {
 
   ///To unlog you, you need to re-get a token after that
   void logout() async {
-    invokeApi(url + 'desactivation/', header, 'GET');
+    _invokeApi('desactivation/', header, 'GET');
   }
 
-  Future<Response> invokeApi(var url, Map<String, String> header, var method,
+  Future<Response> _invokeApi(var path, Map<String, String> header, var method,
       {var body}) async {
+    var _url = url + path;
     switch (method) {
       case 'GET':
-        return await http.get(Uri.parse(url), headers: header);
+        return await http.get(Uri.parse(_url), headers: header);
       case 'POST':
-        return await http.post(Uri.parse(url), headers: header, body: body);
+        return await http.post(Uri.parse(_url), headers: header, body: body);
       case 'DELETE':
-        return await http.delete(Uri.parse(url), headers: header, body: body);
+        return await http.delete(Uri.parse(_url), headers: header, body: body);
       case 'PUT':
-        return await http.put(Uri.parse(url), headers: header, body: body);
+        return await http.put(Uri.parse(_url), headers: header, body: body);
       case 'PATCH':
-        return await http.patch(Uri.parse(url), headers: header, body: body);
+        return await http.patch(Uri.parse(_url), headers: header, body: body);
       default:
-        return await http.get(Uri.parse(url), headers: header);
+        return await http.get(Uri.parse(_url), headers: header);
     }
   }
 

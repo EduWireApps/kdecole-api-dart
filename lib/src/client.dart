@@ -19,10 +19,12 @@ class Client {
   }
 
   Future<void> setUserData() async {
-    var json = jsonDecode(
-        (await _invokeApi('infoutilisateur/', header, 'GET')).body);
+    var json =
+        jsonDecode((await _invokeApi('infoutilisateur/', header, 'GET')).body);
     print(json);
-    info = UserInfo(fullName: json['nom'], etab: json['etabs'][0]['nom'],
+    info = UserInfo(
+        fullName: json['nom'],
+        etab: json['etabs'][0]['nom'],
         id: int.parse(json['idEtablissementSelectionne']));
   }
 
@@ -49,8 +51,7 @@ class Client {
   Future<List<Email>?> getEmails() async {
     var convert = HtmlUnescape();
     var json = jsonDecode(
-        (await _invokeApi('messagerie/boiteReception/', header, 'GET'))
-            .body);
+        (await _invokeApi('messagerie/boiteReception/', header, 'GET')).body);
     var emails = json['communications'] as List<dynamic>;
     List<Email> ret = [];
     for (var element in emails) {
@@ -59,7 +60,8 @@ class Client {
           body: convert.convert(element['premieresLignes']),
           sender: convert.convert(element['expediteurInitial']['libelle']),
           receivers: '',
-          id: element['id'],messages:  []));
+          id: element['id'],
+          messages: []));
     }
     return ret;
   }
@@ -96,14 +98,29 @@ class Client {
   }
 
   ///Send an email
-
-  //TODO test this feature
   Future<void> sendEmail(String body, Email emailToRespond) async {
     await _invokeApi(
         'messagerie/communication/nouvelleParticipation/${emailToRespond.id}/',
         header,
         'PUT',
         body: body);
+  }
+
+  ///Mark as read an Email
+  Future<void> markAsRead(Email mail) async {
+    await _invokeApi('messagerie/communication/lu/${mail.id}/', header, 'PUT');
+  }
+
+  ///Delete communication
+  Future<void> deleteMail(Email mail) async {
+    await _invokeApi(
+        'messagerie/communication/supprimer/${mail.id}/', header, 'DELETE');
+  }
+
+  ///Report an email, don't abuse of it
+  Future<void> reportMail(Email mail) async {
+    await _invokeApi(
+        'messagerie/communication/signaler/${mail.id}/', header, 'PUT');
   }
 
   ///Get the homeworks
@@ -136,7 +153,7 @@ class Client {
   Future<HomeWork> getFullHomework(HomeWork hw) async {
     var convert = HtmlUnescape();
     var json = jsonDecode((await _invokeApi(
-        'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
+            'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
             header,
             'GET'))
         .body);
@@ -159,8 +176,10 @@ class Client {
   Future<void> setHomeWorkStatus(HomeWork hw, bool newState) async {
     var json = (await _invokeApi(
             'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
-        header,
-        'PUT', body: '{"flagRealise":$newState}')).body;
+            header,
+            'PUT',
+            body: '{"flagRealise":$newState}'))
+        .body;
     print(json);
   }
 

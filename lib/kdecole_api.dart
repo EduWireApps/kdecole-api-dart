@@ -12,5 +12,3 @@ part 'src/entities/email.dart';
 part 'src/entities/homework.dart';
 part 'src/entities/message.dart';
 part 'src/entities/userinfo.dart';
-
-

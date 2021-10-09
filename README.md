@@ -6,8 +6,7 @@ This is an **UNOFFICIAL** wrapper for the kdecole api
 
 First, you need to create a Client() object : <br>
 
-### **LOGIN AND PASSWORD ARE NOT YOUR ENT ONES. TEMPORARY USERNAME AND PASSWORD GIVEN TO INIT THE MOBILE APP SHALL BE
-USED**
+### **LOGIN AND PASSWORD ARE NOT YOUR ENT ONES. TEMPORARY USERNAME AND PASSWORD GIVEN TO INIT THE MOBILE APP SHALL BE USED**
 
 ````dart
 var client = Client(Urls.<your CAS>, 'your username', 'your password');

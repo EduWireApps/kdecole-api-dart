@@ -75,7 +75,7 @@ It will return you a list of homeworks
 ### Get the full homework
 
 ```dart
-var hw = client.getFullHomework(oldHw);
+var hw = await client.getFullHomework(oldHw);
 ```
 
 It will return you the new Hw with the full body
@@ -92,3 +92,23 @@ You can get from it :
 - The uuid
 - The uuid of the session
 - the Date
+
+## Timetable
+
+### Get the timetable
+
+There is only one method : 
+```dart
+var tt = await client.getTimetable();
+```
+
+It will return to you a list of Course
+
+### The course object
+
+You can get from it :
+- The subject
+- A list of homeworks (only theuid, just get the sessionUid and use the getFullHomework method)
+- The content (if given)
+- The start date (Datetime)
+- The end date (Datetime too)

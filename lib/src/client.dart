@@ -2,19 +2,16 @@ part of '../kdecole_api.dart';
 
 class Client {
   late final String url;
-  final casUrl urls;
   late String token;
   Map<String, String> header = {};
   late UserInfo info;
 
-  Client(this.urls, username, password) {
-    url = _enumToUrl(urls);
+  Client(this.url, username, password) {
     login(username, password);
   }
 
   ///Create this object if you already have a token
-  Client.fromToken(this.token, this.urls) {
-    url = _enumToUrl(urls);
+  Client.fromToken(this.token, this.url) {
     header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
   }
 
@@ -40,6 +37,13 @@ class Client {
       header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
       return 'Succesfuly connected';
     }
+  }
+
+  Future<String> getMarks() async {
+    var response = (await _invokeApi(
+            'consulterNotes/idetablissement/${info.etab}/', header, 'GET'))
+        .body;
+    return response;
   }
 
   ///To get name, school or class
@@ -171,6 +175,31 @@ class Client {
         date: DateTime.fromMillisecondsSinceEpoch(json['date']));
   }
 
+  ///Get the timetable of the week
+  Future<List<Course>> getTimetable() async {
+    var json = jsonDecode((await _invokeApi(
+            'calendrier/idetablissement/${info.id}/', header, 'GET'))
+        .body);
+    var ret = <Course>[];
+    for (var element in json['listeJourCdt']) {
+      for (var e in element['listeSeances']) {
+        var hw = [];
+        if (e['aRendre'] != null) {
+          for (var i in e['aRendre']) {
+            hw.add(i['uid']);
+          }
+        }
+        ret.add(Course(
+            subject: e['matiere'],
+            homeworks: hw,
+            content: e['titre'],
+            startDate: DateTime.fromMillisecondsSinceEpoch(e['hdeb']),
+            endDate: DateTime.fromMillisecondsSinceEpoch(e['hfin'])));
+      }
+    }
+    return ret;
+  }
+
   ///To mark an homework as done or not
   ///A full hw (got by the getFullHomework() method isn't needed
   Future<void> setHomeWorkStatus(HomeWork hw, bool newState) async {
@@ -206,61 +235,41 @@ class Client {
         return await http.get(Uri.parse(_url), headers: header);
     }
   }
-
-  String _enumToUrl(casUrl url) {
-    switch (url) {
-      case casUrl.agora06:
-        return 'https://mobilite.agora06.fr/mobilite/';
-      case casUrl.arsene76:
-        return 'https://mobilite.arsene76.fr/mobilite/';
-      case casUrl.auCollege84Vaucluse:
-        return 'https://mobilite.aucollege84.vaucluse.fr/mobilite/';
-      case casUrl.auvergneRhoneAlpes:
-        return 'https://mobilite.ent.auvergnerhonealpes.fr/mobilite/';
-      case casUrl.cyberColleges42:
-        return 'https://mobilite.cybercolleges42.fr/mobilite/';
-      case casUrl.demo:
-        return 'https://mobilite.demo.skolengo.com/mobilite/';
-      case casUrl.eclatBfc:
-        return 'https://mobilite.eclat-bfc.fr/mobilite/';
-      case casUrl.eCollegeHauteGaronne:
-        return 'https://mobilite.ecollege.haute-garonne.fr/mobilite/';
-      case casUrl.ent27:
-        return 'https://mobilite.ent27.fr/mobilite/';
-      case casUrl.entCreuse:
-        return 'https://mobilite.entcreuse.fr/mobilite/';
-      case casUrl.kosmosEducation:
-        return 'https://mobilite.kosmoseducation.com/mobilite/';
-      case casUrl.monBureauNumerique:
-        return 'https://mobilite.monbureaunumerique.fr/mobilite/';
-      case casUrl.monCollegeValdoise:
-        return 'https://mobilite.moncollege.valdoise.fr/mobilite/';
-      case casUrl.monEntOccitanie:
-        return 'https://mobilite.mon-ent-occitanie.fr/mobilite/';
-      case casUrl.savoirsNumeriques62:
-        return 'https://mobilite.savoirsnumeriques62.fr/mobilite/';
-      case casUrl.webCollegeSeineSaintDenis:
-        return 'https://mobilite.webcollege.seinesaintdenis.fr/mobilite/';
-    }
-  }
 }
 
-///List of cas' urls
-enum casUrl {
-  monBureauNumerique,
-  monEntOccitanie,
-  arsene76,
-  ent27,
-  entCreuse,
-  auvergneRhoneAlpes,
-  savoirsNumeriques62,
-  agora06,
-  cyberColleges42,
-  eCollegeHauteGaronne,
-  monCollegeValdoise,
-  webCollegeSeineSaintDenis,
-  eclatBfc,
-  kosmosEducation,
-  auCollege84Vaucluse,
-  demo,
-}
+/// THIS IS A LIST OF ALL THE URLS
+/// 
+///      agora06
+///        https://mobilite.agora06.fr/mobilite/
+///      arsene76:
+///        https://mobilite.arsene76.fr/mobilite/
+///      auCollege84Vaucluse:
+///        https://mobilite.aucollege84.vaucluse.fr/mobilite/
+///      auvergneRhoneAlpes:
+///        https://mobilite.ent.auvergnerhonealpes.fr/mobilite/
+///      cyberColleges42:
+///        https://mobilite.cybercolleges42.fr/mobilite/
+///      demo:
+///        https://mobilite.demo.skolengo.com/mobilite/
+///      eclatBfc:
+///        https://mobilite.eclat-bfc.fr/mobilite/
+///      eCollegeHauteGaronne:
+///        https://mobilite.ecollege.haute-garonne.fr/mobilite/
+///      ent27:
+///        https://mobilite.ent27.fr/mobilite/
+///      entCreuse:
+///        https://mobilite.entcreuse.fr/mobilite/
+///      kosmosEducation:
+///        https://mobilite.kosmoseducation.com/mobilite/
+///      monBureauNumerique:
+///        https://mobilite.monbureaunumerique.fr/mobilite/
+///      monCollegeValdoise:
+///        https://mobilite.moncollege.valdoise.fr/mobilite/
+///      monEntOccitanie:
+///        https://mobilite.mon-ent-occitanie.fr/mobilite/
+///      savoirsNumeriques62:
+///        https://mobilite.savoirsnumeriques62.fr/mobilite/
+///      webCollegeSeineSaintDenis
+///        https://mobilite.webcollege.seinesaintdenis.fr/mobilite/
+/// 
+

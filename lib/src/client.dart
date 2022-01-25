@@ -3,6 +3,7 @@ part of '../kdecole_api.dart';
 class Client {
   late final String url;
   late String token;
+  late Perms perms;
   Map<String, String> header = {};
   late UserInfo info;
 
@@ -18,11 +19,20 @@ class Client {
   Future<void> setUserData() async {
     var json =
         jsonDecode((await _invokeApi('infoutilisateur/', header, 'GET')).body);
+    print(json);
     info = UserInfo(
       fullName: json['nom'],
       etab: json['etabs'][0]['nom'],
       etabId: int.parse(json['idEtablissementSelectionne']),
       id: int.parse(json['xiti']['idProjet']),
+    );
+    var p = json['etabs'][0]['permissions'].toString().split(' ');
+    perms = Perms(
+      emails: p.contains('messagerie'),
+      marks: p.contains('vsc-releves-consulter'),
+      timetable: p.contains('cdt-calendrier'),
+      homeworks: p.contains('cdt-travaux'),
+      schoolLife: p.contains('vsc-abs-consulter'),
     );
   }
 
@@ -94,7 +104,7 @@ class Client {
   }
 
   ///To get name, school or class
-  Future<UserInfo> getUserData() async {
+  UserInfo getUserData() {
     return info;
   }
 

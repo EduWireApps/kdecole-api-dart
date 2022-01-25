@@ -3,7 +3,7 @@ part of '../../kdecole_api.dart';
 class UserInfo {
   final String fullName;
   final String etab;
-  final int id;
+  final String id;
   final int etabId;
 
   UserInfo({

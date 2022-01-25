@@ -19,12 +19,23 @@ class Client {
   Future<void> setUserData() async {
     var json =
         jsonDecode((await _invokeApi('infoutilisateur/', header, 'GET')).body);
-    print(json);
+
+    ///bad code, but api bad too
+    dynamic a;
+    while (true) {
+      a = jsonDecode((await _invokeApi(
+              'consulterAbsences/idetablissement/${int.parse(json['idEtablissementSelectionne'])}/',
+              header,
+              'GET'))
+          .body);
+      if (a['errmsg'] == null) break;
+      await Future.delayed(Duration(seconds: 1));
+    }
     info = UserInfo(
       fullName: json['nom'],
       etab: json['etabs'][0]['nom'],
       etabId: int.parse(json['idEtablissementSelectionne']),
-      id: int.parse(json['xiti']['idProjet']),
+      id: a['codeEleve'],
     );
     var p = json['etabs'][0]['permissions'].toString().split(' ');
     perms = Perms(

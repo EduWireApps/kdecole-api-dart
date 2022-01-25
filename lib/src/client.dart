@@ -67,6 +67,23 @@ class Client {
     return ret;
   }
 
+  Future<List<Absence>> getAbsences() async {
+    var rep = jsonDecode((await _invokeApi(
+            'consulterAbsences/idetablissement/${info.etabId}/', header, 'GET'))
+        .body)['listeAbsences'];
+    var ret = <Absence>[];
+    for (var v in rep) {
+      ret.add(Absence(
+          dateFin: DateTime.fromMillisecondsSinceEpoch(v['dateFin']),,
+          motif: v['motif'] == null ? '' : v['motif'],
+          type: v['type'],
+          matiere: v['matiere'],
+          dateDebut: DateTime.fromMillisecondsSinceEpoch(v['dateDebut']),
+          justifiee: v['justifiee']));
+    }
+    return ret;
+  }
+
   Future<Actuality> getFullActuality({required Actuality actuality}) async {
     var json = jsonDecode((await _invokeApi(
             'contenuArticle/article/${actuality.uid}/', header, 'GET'))

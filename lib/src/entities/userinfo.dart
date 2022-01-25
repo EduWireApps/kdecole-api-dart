@@ -4,6 +4,12 @@ class UserInfo {
   final String fullName;
   final String etab;
   final int id;
+  final int etabId;
 
-  UserInfo({required this.fullName, required this.etab, required this.id});
+  UserInfo({
+    required this.fullName,
+    required this.etab,
+    required this.id,
+    required this.etabId,
+  });
 }

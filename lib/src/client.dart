@@ -18,18 +18,18 @@ class Client {
   Future<void> setUserData() async {
     var json =
         jsonDecode((await _invokeApi('infoutilisateur/', header, 'GET')).body);
-    print(json);
     info = UserInfo(
-        fullName: json['nom'],
-        etab: json['etabs'][0]['nom'],
-        id: int.parse(json['idEtablissementSelectionne']));
+      fullName: json['nom'],
+      etab: json['etabs'][0]['nom'],
+      etabId: int.parse(json['idEtablissementSelectionne']),
+      id: int.parse(json['xiti']['idProjet']),
+    );
   }
 
   ///Login with temporary username and password
   Future<String> login(String username, String password) async {
     var rep = await _invokeApi(username + '/' + password, {}, 'GET');
     var json = jsonDecode(rep.body);
-    print(json['authtoken']);
     if (json['authtoken'] == null) {
       return 'An error as occured';
     } else {
@@ -39,11 +39,58 @@ class Client {
     }
   }
 
-  Future<String> getMarks() async {
-    var response = (await _invokeApi(
-            'consulterNotes/idetablissement/${info.etab}/', header, 'GET'))
-        .body;
-    return response;
+  Future<List<Actuality>> getActualities() async {
+    var rep = jsonDecode((await _invokeApi(
+            'actualites/idetablissement/${info.etabId}/', header, 'GET'))
+        .body);
+    var ret = <Actuality>[];
+    for (var v in rep) {
+      if (v['uid'].toString().contains('-')) {
+        ret.add(Actuality(
+            author: v['auteur'],
+            title: v['titre'],
+            uid: v['uid'],
+            codeEmetteur: v['codeEmetteur'],
+            date: DateTime.fromMillisecondsSinceEpoch(v['date'])));
+      }
+    }
+    return ret;
+  }
+
+  Future<Actuality> getFullActuality({required Actuality actuality}) async {
+    var json = jsonDecode((await _invokeApi(
+            'contenuArticle/article/${actuality.uid}/', header, 'GET'))
+        .body);
+    return Actuality(
+      title: json['titre'],
+      date: DateTime.fromMillisecondsSinceEpoch(json['date']),
+      author: json['auteur'],
+      content:
+          parse(HtmlUnescape().convert(json['codeHTML'])).documentElement!.text,
+      codeEmetteur: actuality.codeEmetteur,
+      uid: actuality.uid,
+    );
+  }
+
+  Future<List<Grade>> getGrades() async {
+    var response = jsonDecode((await _invokeApi(
+            'consulterReleves/idetablissement/${info.etabId}/', header, 'GET'))
+        .body);
+    var ret = <Grade>[];
+
+    for (var v in response[0]['matieres']) {
+      for (var l in v['devoirs']) {
+        ret.add(Grade(
+          id: l['id'],
+          grade: l['note'],
+          maxGrade: l['bareme'],
+          name: l['titreDevoir'],
+          date: DateTime.fromMillisecondsSinceEpoch(l['date']),
+        ));
+      }
+    }
+
+    return ret;
   }
 
   ///To get name, school or class
@@ -81,8 +128,6 @@ class Client {
     var convert = HtmlUnescape();
     var messagesList = json['participations'] as List<dynamic>;
     for (var element in messagesList) {
-      print(element);
-
       final String parsedString =
           parse(convert.convert(element['corpsMessage'])).documentElement!.text;
       messages.add(Message(
@@ -132,7 +177,6 @@ class Client {
     var json = jsonDecode((await _invokeApi(
             'travailAFaire/idetablissement/${info.id}/', header, 'GET'))
         .body);
-    print(json);
     var homeworks = json['listeTravaux'] as List<dynamic>;
     var ret = <HomeWork>[];
     for (var element in homeworks) {
@@ -161,7 +205,6 @@ class Client {
             header,
             'GET'))
         .body);
-    print(json);
     final String parsedString =
         parse(convert.convert(json['codeHTML'])).documentElement!.text;
     return HomeWork(
@@ -209,7 +252,6 @@ class Client {
             'PUT',
             body: '{"flagRealise":$newState}'))
         .body;
-    print(json);
   }
 
   ///To unlog you, you need to re-get a token after that

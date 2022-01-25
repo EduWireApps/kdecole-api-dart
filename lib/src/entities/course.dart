@@ -1,3 +1,5 @@
+part of kdecole_api;
+
 class Course {
   final String subject;
   final List homeworks;

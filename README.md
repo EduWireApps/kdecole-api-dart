@@ -67,7 +67,7 @@ You can get from it :
 As well as the messaging, this method only return you the first lines of the homework :
 
 ```dart
-var homeworksList = await client.getHomeworks;
+var homeworksList = await client.getHomeworks();
 ```
 
 It will return you a list of homeworks

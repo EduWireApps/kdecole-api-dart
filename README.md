@@ -18,12 +18,12 @@ or if you already have a token :
 var client = Client.fromToken('tokennnnnn', Urls.<your CAS>);
 ````
 
-Now you're logged !!
+Now you're logged in !
 
-To unlog :
+To logout :
 
 ````dart
-await client.unlog();
+await client.logout();
 ````
 
 ## Messaging

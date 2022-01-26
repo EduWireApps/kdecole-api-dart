@@ -2,7 +2,8 @@ part of kdecole_api;
 
 class Period {
   int id;
-  String className, periodName;
+  String className;
+  String periodName;
   List<Subject> subjects;
 
   Period({

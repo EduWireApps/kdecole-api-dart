@@ -125,7 +125,7 @@ class Client {
               name: grade['titreDevoir'],
               date: DateTime.fromMillisecondsSinceEpoch(grade['date']),
               medium: double.parse(grade['moyenne']),
-              coef: grade['coefficient'],
+              coefficient: grade['coefficient'],
               best: double.parse(grade['noteMax']),
             ),
           );
@@ -214,14 +214,14 @@ class Client {
   }
 
   ///Get the homeworks
-  Future<List<HomeWork>> getHomeworks() async {
+  Future<List<Homework>> getHomeworks() async {
     final Map<String, dynamic> json =
         jsonDecode((await _invokeApi('travailAFaire/idetablissement/${info.id}/', 'GET')).body);
-    final List<HomeWork> homeworks = [];
+    final List<Homework> homeworks = [];
     for (final homework in json['listeTravaux'] as List<dynamic>) {
       var date = DateTime.fromMillisecondsSinceEpoch(homework['date']);
       for (var e in homework['listTravail']) {
-        homeworks.add(HomeWork(
+        homeworks.add(Homework(
             content: e['titre'],
             type: e['type'],
             subject: e['matiere'],
@@ -237,14 +237,14 @@ class Client {
   }
 
   ///Get all the details of a Homework
-  Future<HomeWork> getFullHomework(HomeWork homework) async {
+  Future<Homework> getFullHomework(Homework homework) async {
     final HtmlUnescape convert = HtmlUnescape();
     final Map<String, dynamic> json = jsonDecode((await _invokeApi(
             'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/', 'GET'))
         .body);
     print(json);
     final String parsedString = parse(convert.convert(json['codeHTML'])).documentElement!.text;
-    return HomeWork(
+    return Homework(
         content: parsedString,
         type: json['type'],
         subject: json['matiere'],
@@ -281,7 +281,7 @@ class Client {
 
   ///To mark an homework as done or not
   ///A full hw (got by the getFullHomework() method isn't needed
-  Future<void> setHomeWorkStatus(HomeWork homework, bool status) async {
+  Future<void> setHomeworkStatus(Homework homework, bool status) async {
     var json = (await _invokeApi(
             'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/', 'PUT',
             body: '{"flagRealise":$status}'))

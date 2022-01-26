@@ -7,7 +7,5 @@ class Message {
 
   Message({required this.body, required this.sender, required this.date});
 
-  String get dateString {
-    return '${date.day}/${date.month}/${date.year} ${date.hour}h${date.minute}';
-  }
+  String get dateAsString => '${date.day}/${date.month}/${date.year} ${date.hour}h${date.minute}';
 }

@@ -1,6 +1,6 @@
 part of kdecole_api;
 
-class HomeWork {
+class Homework {
   final String content;
   final String type;
   final String subject;
@@ -10,7 +10,7 @@ class HomeWork {
   final int sessionUuid;
   final DateTime date;
 
-  HomeWork(
+  Homework(
       {required this.content,
       required this.type,
       required this.subject,

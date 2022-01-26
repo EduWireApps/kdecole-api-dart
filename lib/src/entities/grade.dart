@@ -1,8 +1,12 @@
 part of kdecole_api;
 
 class Grade {
-  final int id, bareme;
-  final double grade, medium, best, coef;
+  final int id;
+  final int bareme;
+  final double grade;
+  final double medium;
+  final double best;
+  final double coefficient;
   final String name;
   final DateTime date;
 
@@ -14,6 +18,6 @@ class Grade {
     required this.date,
     required this.medium,
     required this.best,
-    required this.coef,
+    required this.coefficient,
   });
 }

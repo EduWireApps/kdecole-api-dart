@@ -1,9 +1,12 @@
 part of kdecole_api;
 
 class Actuality {
-  final String author, title, uid, codeEmetteur;
-  final String? content;
+  final String author;
+  final String title;
+  final String uid;
+  final String codeEmetteur;
   final DateTime date;
+  final String? content;
 
   Actuality({
     required this.author,

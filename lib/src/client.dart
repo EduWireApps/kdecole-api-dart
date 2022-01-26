@@ -1,32 +1,30 @@
-part of '../kdecole_api.dart';
+part of kdecole_api;
 
+/// The dart client  for the kdecole Api.
 class Client {
-  late final String url;
-  late String token;
+  final String url;
+  String token = "";
   late Perms perms;
-  Map<String, String> header = {};
+  final Map<String, String> headers = {};
   late UserInfo info;
 
-  Client(this.url, username, password) {
+  Client({required this.url, required String username, required String password}) {
     login(username, password);
   }
 
-  ///Create this object if you already have a token
-  Client.fromToken(this.token, this.url) {
-    header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
+  /// Create a new client from a token instead of credentials.
+  Client.fromToken({required this.token, required this.url}) {
+    headers.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
   }
 
   Future<void> setUserData() async {
-    var json =
-        jsonDecode((await _invokeApi('infoutilisateur/', header, 'GET')).body);
+    var json = jsonDecode((await _invokeApi('infoutilisateur/', 'GET')).body);
 
     ///bad code, but api bad too
     dynamic a;
     while (true) {
       a = jsonDecode((await _invokeApi(
-              'consulterAbsences/idetablissement/${int.parse(json['idEtablissementSelectionne'])}/',
-              header,
-              'GET'))
+              'consulterAbsences/idetablissement/${int.parse(json['idEtablissementSelectionne'])}/', 'GET'))
           .body);
       if (a['errmsg'] == null) break;
       await Future.delayed(Duration(seconds: 1));
@@ -49,21 +47,19 @@ class Client {
 
   ///Login with temporary username and password
   Future<String> login(String username, String password) async {
-    var rep = await _invokeApi(username + '/' + password, {}, 'GET');
+    var rep = await _invokeApi(username + '/' + password, 'GET', headers: {});
     var json = jsonDecode(rep.body);
     if (json['authtoken'] == null) {
       return 'An error as occured';
     } else {
       token = json['authtoken'];
-      header.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
+      headers.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
       return 'Succesfuly connected';
     }
   }
 
   Future<List<Actuality>> getActualities() async {
-    var rep = jsonDecode((await _invokeApi(
-            'actualites/idetablissement/${info.etabId}/', header, 'GET'))
-        .body);
+    var rep = jsonDecode((await _invokeApi('actualites/idetablissement/${info.etabId}/', 'GET')).body);
     var ret = <Actuality>[];
     for (var v in rep) {
       if (v['uid'].toString().contains('-')) {
@@ -79,9 +75,8 @@ class Client {
   }
 
   Future<List<Absence>> getAbsences() async {
-    var rep = jsonDecode((await _invokeApi(
-            'consulterAbsences/idetablissement/${info.etabId}/', header, 'GET'))
-        .body)['listeAbsences'];
+    var rep = jsonDecode(
+        (await _invokeApi('consulterAbsences/idetablissement/${info.etabId}/', 'GET')).body)['listeAbsences'];
     var ret = <Absence>[];
     for (var v in rep) {
       ret.add(Absence(
@@ -96,24 +91,19 @@ class Client {
   }
 
   Future<Actuality> getFullActuality({required Actuality actuality}) async {
-    var json = jsonDecode((await _invokeApi(
-            'contenuArticle/article/${actuality.uid}/', header, 'GET'))
-        .body);
+    var json = jsonDecode((await _invokeApi('contenuArticle/article/${actuality.uid}/', 'GET')).body);
     return Actuality(
       title: json['titre'],
       date: DateTime.fromMillisecondsSinceEpoch(json['date']),
       author: json['auteur'],
-      content:
-          parse(HtmlUnescape().convert(json['codeHTML'])).documentElement!.text,
+      content: parse(HtmlUnescape().convert(json['codeHTML'])).documentElement!.text,
       codeEmetteur: actuality.codeEmetteur,
       uid: actuality.uid,
     );
   }
 
   Future<List<Period>> getGrades() async {
-    var response = jsonDecode((await _invokeApi(
-            'consulterReleves/idetablissement/${info.etabId}/', header, 'GET'))
-        .body);
+    var response = jsonDecode((await _invokeApi('consulterReleves/idetablissement/${info.etabId}/', 'GET')).body);
     var ret = <Period>[];
     for (var j in response) {
       var sub = <Subject>[];
@@ -164,8 +154,7 @@ class Client {
   ///Get the messaging emails, only a preview of them
   Future<List<Email>?> getEmails() async {
     var convert = HtmlUnescape();
-    var json = jsonDecode(
-        (await _invokeApi('messagerie/boiteReception/', header, 'GET')).body);
+    var json = jsonDecode((await _invokeApi('messagerie/boiteReception/', 'GET')).body);
     var emails = json['communications'] as List<dynamic>;
     List<Email> ret = [];
     for (var element in emails) {
@@ -183,21 +172,15 @@ class Client {
   ///Get all the details of an Email, with the full body
   Future<Email> getFullEmail(Email email) async {
     var messages = <Message>[];
-    var json = jsonDecode((await _invokeApi(
-            'messagerie/communication/' + email.id.toString() + '/',
-            header,
-            'GET'))
-        .body);
+    var json = jsonDecode((await _invokeApi('messagerie/communication/' + email.id.toString() + '/', 'GET')).body);
     var convert = HtmlUnescape();
     var messagesList = json['participations'] as List<dynamic>;
     for (var element in messagesList) {
-      final String parsedString =
-          parse(convert.convert(element['corpsMessage'])).documentElement!.text;
+      final String parsedString = parse(convert.convert(element['corpsMessage'])).documentElement!.text;
       messages.add(Message(
           body: parsedString,
           sender: element['redacteur']['libelle'],
-          date: DateTime.fromMillisecondsSinceEpoch(
-              int.parse(element['dateEnvoi'].toString()))));
+          date: DateTime.fromMillisecondsSinceEpoch(int.parse(element['dateEnvoi'].toString()))));
     }
 
     return Email(
@@ -211,35 +194,27 @@ class Client {
 
   ///Send an email
   Future<void> sendEmail(String body, Email emailToRespond) async {
-    await _invokeApi(
-        'messagerie/communication/nouvelleParticipation/${emailToRespond.id}/',
-        header,
-        'PUT',
-        body: body);
+    await _invokeApi('messagerie/communication/nouvelleParticipation/${emailToRespond.id}/', 'PUT', body: body);
   }
 
   ///Mark as read an Email
   Future<void> markAsRead(Email mail) async {
-    await _invokeApi('messagerie/communication/lu/${mail.id}/', header, 'PUT');
+    await _invokeApi('messagerie/communication/lu/${mail.id}/', 'PUT');
   }
 
   ///Delete communication
   Future<void> deleteMail(Email mail) async {
-    await _invokeApi(
-        'messagerie/communication/supprimer/${mail.id}/', header, 'DELETE');
+    await _invokeApi('messagerie/communication/supprimer/${mail.id}/', 'DELETE');
   }
 
   ///Report an email, don't abuse of it
   Future<void> reportMail(Email mail) async {
-    await _invokeApi(
-        'messagerie/communication/signaler/${mail.id}/', header, 'PUT');
+    await _invokeApi('messagerie/communication/signaler/${mail.id}/', 'PUT');
   }
 
   ///Get the homeworks
   Future<List<HomeWork>> getHomeworks() async {
-    var json = jsonDecode((await _invokeApi(
-            'travailAFaire/idetablissement/${info.id}/', header, 'GET'))
-        .body);
+    var json = jsonDecode((await _invokeApi('travailAFaire/idetablissement/${info.id}/', 'GET')).body);
     var homeworks = json['listeTravaux'] as List<dynamic>;
     var ret = <HomeWork>[];
     for (var element in homeworks) {
@@ -263,14 +238,10 @@ class Client {
   ///Get all the details of a Homework
   Future<HomeWork> getFullHomework(HomeWork hw) async {
     var convert = HtmlUnescape();
-    var json = jsonDecode((await _invokeApi(
-            'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
-            header,
-            'GET'))
-        .body);
+    var json = jsonDecode(
+        (await _invokeApi('contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/', 'GET')).body);
     print(json);
-    final String parsedString =
-        parse(convert.convert(json['codeHTML'])).documentElement!.text;
+    final String parsedString = parse(convert.convert(json['codeHTML'])).documentElement!.text;
     return HomeWork(
         content: parsedString,
         type: json['type'],
@@ -284,9 +255,7 @@ class Client {
 
   ///Get the timetable of the week
   Future<List<Course>> getTimetable() async {
-    var json = jsonDecode((await _invokeApi(
-            'calendrier/idetablissement/${info.id}/', header, 'GET'))
-        .body);
+    var json = jsonDecode((await _invokeApi('calendrier/idetablissement/${info.id}/', 'GET')).body);
     var ret = <Course>[];
     for (var element in json['listeJourCdt']) {
       for (var e in element['listeSeances']) {
@@ -310,35 +279,32 @@ class Client {
   ///To mark an homework as done or not
   ///A full hw (got by the getFullHomework() method isn't needed
   Future<void> setHomeWorkStatus(HomeWork hw, bool newState) async {
-    var json = (await _invokeApi(
-            'contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/',
-            header,
-            'PUT',
+    var json = (await _invokeApi('contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/', 'PUT',
             body: '{"flagRealise":$newState}'))
         .body;
   }
 
   ///To unlog you, you need to re-get a token after that
   void logout() async {
-    _invokeApi('desactivation/', header, 'GET');
+    _invokeApi('desactivation/', 'GET');
   }
 
-  Future<Response> _invokeApi(var path, Map<String, String> header, var method,
-      {var body}) async {
-    var _url = url + path;
+  Future<Response> _invokeApi(String path, String method, {Map<String, String>? headers, Object? body}) async {
+    final Uri uri = Uri.parse(url + path);
+    headers ??= this.headers;
     switch (method) {
       case 'GET':
-        return await http.get(Uri.parse(_url), headers: header);
+        return await http.get(uri, headers: headers);
       case 'POST':
-        return await http.post(Uri.parse(_url), headers: header, body: body);
+        return await http.post(uri, headers: headers, body: body);
       case 'DELETE':
-        return await http.delete(Uri.parse(_url), headers: header, body: body);
+        return await http.delete(uri, headers: headers, body: body);
       case 'PUT':
-        return await http.put(Uri.parse(_url), headers: header, body: body);
+        return await http.put(uri, headers: headers, body: body);
       case 'PATCH':
-        return await http.patch(Uri.parse(_url), headers: header, body: body);
+        return await http.patch(uri, headers: headers, body: body);
       default:
-        return await http.get(Uri.parse(_url), headers: header);
+        return await http.get(uri, headers: headers);
     }
   }
 }

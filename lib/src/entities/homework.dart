@@ -1,4 +1,4 @@
-part of '../../kdecole_api.dart';
+part of kdecole_api;
 
 class HomeWork {
   final String content;

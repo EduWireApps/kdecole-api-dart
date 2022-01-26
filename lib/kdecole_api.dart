@@ -17,3 +17,4 @@ part 'src/entities/course.dart';
 part 'src/entities/grade.dart';
 part 'src/entities/perms.dart';
 part 'src/entities/absence.dart';
+part 'src/entities/subject.dart';

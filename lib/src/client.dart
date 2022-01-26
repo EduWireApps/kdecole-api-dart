@@ -85,8 +85,8 @@ class Client {
     var ret = <Absence>[];
     for (var v in rep) {
       ret.add(Absence(
-          dateFin: DateTime.fromMillisecondsSinceEpoch(v['dateFin']),,
-          motif: v['motif'] == null ? '' : v['motif'],
+          dateFin: DateTime.fromMillisecondsSinceEpoch(v['dateFin']),
+          motif: v['motif'] ?? '',
           type: v['type'],
           matiere: v['matiere'],
           dateDebut: DateTime.fromMillisecondsSinceEpoch(v['dateDebut']),
@@ -110,21 +110,35 @@ class Client {
     );
   }
 
-  Future<List<Grade>> getGrades() async {
+  Future<List<Subject>> getGrades() async {
     var response = jsonDecode((await _invokeApi(
             'consulterReleves/idetablissement/${info.etabId}/', header, 'GET'))
         .body);
-    var ret = <Grade>[];
+    var ret = <Subject>[];
 
     for (var v in response[0]['matieres']) {
+      var grades = <Grade>[];
       for (var l in v['devoirs']) {
-        ret.add(Grade(
-          id: l['id'],
-          grade: l['note'],
-          maxGrade: l['bareme'],
-          name: l['titreDevoir'],
-          date: DateTime.fromMillisecondsSinceEpoch(l['date']),
-        ));
+        grades.add(
+          Grade(
+            id: l['id'],
+            grade: l['note'],
+            bareme: l['bareme'],
+            name: l['titreDevoir'],
+            date: DateTime.fromMillisecondsSinceEpoch(l['date']),
+            medium: double.parse(l['moyenne']),
+            coef: l['coefficient'],
+            best: double.parse(l['noteMax']),
+          ),
+        );
+        ret.add(
+          Subject(
+            grades: grades,
+            name: v['matiereLibelle'],
+            mid: double.parse(v['moyenneEleve']),
+            midClass: double.parse(v['moyenneClasse']),
+          ),
+        );
       }
     }
 
@@ -243,6 +257,7 @@ class Client {
             header,
             'GET'))
         .body);
+    print(json);
     final String parsedString =
         parse(convert.convert(json['codeHTML'])).documentElement!.text;
     return HomeWork(

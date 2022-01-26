@@ -110,37 +110,47 @@ class Client {
     );
   }
 
-  Future<List<Subject>> getGrades() async {
+  Future<List<Period>> getGrades() async {
     var response = jsonDecode((await _invokeApi(
             'consulterReleves/idetablissement/${info.etabId}/', header, 'GET'))
         .body);
-    var ret = <Subject>[];
-
-    for (var v in response[0]['matieres']) {
-      var grades = <Grade>[];
-      for (var l in v['devoirs']) {
-        grades.add(
-          Grade(
-            id: l['id'],
-            grade: l['note'],
-            bareme: l['bareme'],
-            name: l['titreDevoir'],
-            date: DateTime.fromMillisecondsSinceEpoch(l['date']),
-            medium: double.parse(l['moyenne']),
-            coef: l['coefficient'],
-            best: double.parse(l['noteMax']),
-          ),
-        );
-        ret.add(
-          Subject(
-            grades: grades,
-            name: v['matiereLibelle'],
-            mid: double.parse(v['moyenneEleve']),
-            midClass: double.parse(v['moyenneClasse']),
-            teacher: v['enseignants'][0],
-          ),
-        );
+    var ret = <Period>[];
+    for (var j in response) {
+      var sub = <Subject>[];
+      for (var v in j['matieres']) {
+        var grades = <Grade>[];
+        for (var l in v['devoirs']) {
+          grades.add(
+            Grade(
+              id: l['id'],
+              grade: l['note'],
+              bareme: l['bareme'],
+              name: l['titreDevoir'],
+              date: DateTime.fromMillisecondsSinceEpoch(l['date']),
+              medium: double.parse(l['moyenne']),
+              coef: l['coefficient'],
+              best: double.parse(l['noteMax']),
+            ),
+          );
+          sub.add(
+            Subject(
+              grades: grades,
+              name: v['matiereLibelle'],
+              mid: double.parse(v['moyenneEleve']),
+              midClass: double.parse(v['moyenneClasse']),
+              teacher: v['enseignants'][0],
+            ),
+          );
+        }
       }
+      ret.add(
+        Period(
+          className: j['libelleClasse'],
+          id: j['idPeriode'],
+          periodName: j['periodeLibelle'],
+          subjects: sub,
+        ),
+      );
     }
 
     return ret;

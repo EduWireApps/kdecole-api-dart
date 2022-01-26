@@ -1,4 +1,4 @@
-import 'package:kdecole_api/kdecole_api.dart';
+part of kdecole_api;
 
 class Period {
   int id;

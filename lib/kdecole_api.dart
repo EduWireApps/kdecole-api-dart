@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:html/parser.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:http/http.dart' as http;
-import 'package:kdecole_api/src/entities/period.dart';
 import 'package:request/request.dart';
 
 part 'src/client.dart';
@@ -19,3 +18,4 @@ part 'src/entities/grade.dart';
 part 'src/entities/perms.dart';
 part 'src/entities/absence.dart';
 part 'src/entities/subject.dart';
+part 'src/entities/period.dart';

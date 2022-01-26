@@ -18,12 +18,12 @@ or if you already have a token :
 var client = Client.fromToken('tokennnnnn', Urls.<your CAS>);
 ````
 
-Now you're logged !!
+Now you're logged in !
 
-To unlog :
+To logout :
 
 ````dart
-await client.unlog();
+await client.logout();
 ````
 
 ## Messaging
@@ -67,7 +67,7 @@ You can get from it :
 As well as the messaging, this method only return you the first lines of the homework :
 
 ```dart
-var homeworksList = await client.getHomeworks;
+var homeworksList = await client.getHomeworks();
 ```
 
 It will return you a list of homeworks

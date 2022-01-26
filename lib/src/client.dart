@@ -96,7 +96,8 @@ class Client {
   }
 
   Future<Actuality> getFullActuality({required Actuality actuality}) async {
-    var json = jsonDecode((await _invokeApi('contenuArticle/article/${actuality.uid}/', 'GET')).body);
+    final Map<String, dynamic> json =
+        jsonDecode((await _invokeApi('contenuArticle/article/${actuality.uid}/', 'GET')).body);
     return Actuality(
       title: json['titre'],
       date: DateTime.fromMillisecondsSinceEpoch(json['date']),
@@ -108,84 +109,79 @@ class Client {
   }
 
   Future<List<Period>> getGrades() async {
-    var response = jsonDecode((await _invokeApi('consulterReleves/idetablissement/${info.etabId}/', 'GET')).body);
-    var ret = <Period>[];
-    for (var j in response) {
-      var sub = <Subject>[];
-      for (var v in j['matieres']) {
-        var grades = <Grade>[];
-        for (var l in v['devoirs']) {
+    final List<Map<String, dynamic>> res =
+        jsonDecode((await _invokeApi('consulterReleves/idetablissement/${info.etabId}/', 'GET')).body);
+    final List<Period> periods = [];
+    for (final period in res) {
+      final List<Subject> subjects = [];
+      for (final subject in period['matieres']) {
+        final List<Grade> grades = [];
+        for (final grade in subject['devoirs']) {
           grades.add(
             Grade(
-              id: l['id'],
-              grade: l['note'],
-              bareme: l['bareme'],
-              name: l['titreDevoir'],
-              date: DateTime.fromMillisecondsSinceEpoch(l['date']),
-              medium: double.parse(l['moyenne']),
-              coef: l['coefficient'],
-              best: double.parse(l['noteMax']),
+              id: grade['id'],
+              grade: grade['note'],
+              bareme: grade['bareme'],
+              name: grade['titreDevoir'],
+              date: DateTime.fromMillisecondsSinceEpoch(grade['date']),
+              medium: double.parse(grade['moyenne']),
+              coef: grade['coefficient'],
+              best: double.parse(grade['noteMax']),
             ),
           );
-          sub.add(
+          subjects.add(
             Subject(
               grades: grades,
-              name: v['matiereLibelle'],
-              mid: double.parse(v['moyenneEleve']),
-              midClass: double.parse(v['moyenneClasse']),
-              teacher: v['enseignants'][0],
+              name: subject['matiereLibelle'],
+              mid: double.parse(subject['moyenneEleve']),
+              midClass: double.parse(subject['moyenneClasse']),
+              teacher: subject['enseignants'][0],
             ),
           );
         }
       }
-      ret.add(
+      periods.add(
         Period(
-          className: j['libelleClasse'],
-          id: j['idPeriode'],
-          periodName: j['periodeLibelle'],
-          subjects: sub,
+          className: period['libelleClasse'],
+          id: period['idPeriode'],
+          periodName: period['periodeLibelle'],
+          subjects: subjects,
         ),
       );
     }
 
-    return ret;
-  }
-
-  ///To get name, school or class
-  UserInfo getUserData() {
-    return info;
+    return periods;
   }
 
   ///Get the messaging emails, only a preview of them
   Future<List<Email>?> getEmails() async {
-    var convert = HtmlUnescape();
-    var json = jsonDecode((await _invokeApi('messagerie/boiteReception/', 'GET')).body);
-    var emails = json['communications'] as List<dynamic>;
-    List<Email> ret = [];
-    for (var element in emails) {
-      ret.add(Email(
-          title: convert.convert(element['objet']),
-          body: convert.convert(element['premieresLignes']),
-          sender: convert.convert(element['expediteurInitial']['libelle']),
+    final HtmlUnescape convert = HtmlUnescape();
+    final Map<String, dynamic> json = jsonDecode((await _invokeApi('messagerie/boiteReception/', 'GET')).body);
+    final List<Email> emails = [];
+    for (final email in json['communications'] as List<dynamic>) {
+      emails.add(Email(
+          title: convert.convert(email['objet']),
+          body: convert.convert(email['premieresLignes']),
+          sender: convert.convert(email['expediteurInitial']['libelle']),
           receivers: '',
-          id: element['id'],
+          id: email['id'],
           messages: []));
     }
-    return ret;
+    return emails;
   }
 
   ///Get all the details of an Email, with the full body
   Future<Email> getFullEmail(Email email) async {
-    var messages = <Message>[];
-    var json = jsonDecode((await _invokeApi('messagerie/communication/' + email.id.toString() + '/', 'GET')).body);
-    var convert = HtmlUnescape();
-    var messagesList = json['participations'] as List<dynamic>;
-    for (var element in messagesList) {
-      final String parsedString = parse(convert.convert(element['corpsMessage'])).documentElement!.text;
+    final List<Message> messages = [];
+    final Map<String, dynamic> json =
+        jsonDecode((await _invokeApi('messagerie/communication/' + email.id.toString() + '/', 'GET')).body);
+    final HtmlUnescape convert = HtmlUnescape();
+    for (final message in json['participations'] as List<dynamic>) {
+      final String parsedString = parse(convert.convert(message['corpsMessage'])).documentElement!.text;
       messages.add(Message(
           body: parsedString,
-          sender: element['redacteur']['libelle'],
-          date: DateTime.fromMillisecondsSinceEpoch(int.parse(element['dateEnvoi'].toString()))));
+          sender: message['redacteur']['libelle'],
+          date: DateTime.fromMillisecondsSinceEpoch(int.parse(message['dateEnvoi'].toString()))));
     }
 
     return Email(
@@ -198,34 +194,34 @@ class Client {
   }
 
   ///Send an email
-  Future<void> sendEmail(String body, Email emailToRespond) async {
-    await _invokeApi('messagerie/communication/nouvelleParticipation/${emailToRespond.id}/', 'PUT', body: body);
+  Future<void> sendEmail(String body, Email email) async {
+    await _invokeApi('messagerie/communication/nouvelleParticipation/${email.id}/', 'PUT', body: body);
   }
 
   ///Mark as read an Email
-  Future<void> markAsRead(Email mail) async {
-    await _invokeApi('messagerie/communication/lu/${mail.id}/', 'PUT');
+  Future<void> markAsRead(Email email) async {
+    await _invokeApi('messagerie/communication/lu/${email.id}/', 'PUT');
   }
 
   ///Delete communication
-  Future<void> deleteMail(Email mail) async {
-    await _invokeApi('messagerie/communication/supprimer/${mail.id}/', 'DELETE');
+  Future<void> deleteMail(Email email) async {
+    await _invokeApi('messagerie/communication/supprimer/${email.id}/', 'DELETE');
   }
 
   ///Report an email, don't abuse of it
-  Future<void> reportMail(Email mail) async {
-    await _invokeApi('messagerie/communication/signaler/${mail.id}/', 'PUT');
+  Future<void> reportMail(Email email) async {
+    await _invokeApi('messagerie/communication/signaler/${email.id}/', 'PUT');
   }
 
   ///Get the homeworks
   Future<List<HomeWork>> getHomeworks() async {
-    var json = jsonDecode((await _invokeApi('travailAFaire/idetablissement/${info.id}/', 'GET')).body);
-    var homeworks = json['listeTravaux'] as List<dynamic>;
-    var ret = <HomeWork>[];
-    for (var element in homeworks) {
-      var date = DateTime.fromMillisecondsSinceEpoch(element['date']);
-      for (var e in element['listTravail']) {
-        ret.add(HomeWork(
+    final Map<String, dynamic> json =
+        jsonDecode((await _invokeApi('travailAFaire/idetablissement/${info.id}/', 'GET')).body);
+    final List<HomeWork> homeworks = [];
+    for (final homework in json['listeTravaux'] as List<dynamic>) {
+      var date = DateTime.fromMillisecondsSinceEpoch(homework['date']);
+      for (var e in homework['listTravail']) {
+        homeworks.add(HomeWork(
             content: e['titre'],
             type: e['type'],
             subject: e['matiere'],
@@ -237,55 +233,58 @@ class Client {
       }
     }
 
-    return ret;
+    return homeworks;
   }
 
   ///Get all the details of a Homework
-  Future<HomeWork> getFullHomework(HomeWork hw) async {
-    var convert = HtmlUnescape();
-    var json = jsonDecode(
-        (await _invokeApi('contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/', 'GET')).body);
+  Future<HomeWork> getFullHomework(HomeWork homework) async {
+    final HtmlUnescape convert = HtmlUnescape();
+    final Map<String, dynamic> json = jsonDecode((await _invokeApi(
+            'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/', 'GET'))
+        .body);
     print(json);
     final String parsedString = parse(convert.convert(json['codeHTML'])).documentElement!.text;
     return HomeWork(
         content: parsedString,
         type: json['type'],
         subject: json['matiere'],
-        estimatedTime: hw.estimatedTime,
+        estimatedTime: homework.estimatedTime,
         isRealised: json['flagRealise'],
-        uuid: hw.uuid,
-        sessionUuid: hw.sessionUuid,
+        uuid: homework.uuid,
+        sessionUuid: homework.sessionUuid,
         date: DateTime.fromMillisecondsSinceEpoch(json['date']));
   }
 
   ///Get the timetable of the week
   Future<List<Course>> getTimetable() async {
-    var json = jsonDecode((await _invokeApi('calendrier/idetablissement/${info.id}/', 'GET')).body);
-    var ret = <Course>[];
-    for (var element in json['listeJourCdt']) {
-      for (var e in element['listeSeances']) {
-        var hw = [];
-        if (e['aRendre'] != null) {
-          for (var i in e['aRendre']) {
-            hw.add(i['uid']);
+    final Map<String, dynamic> json =
+        jsonDecode((await _invokeApi('calendrier/idetablissement/${info.id}/', 'GET')).body);
+    final List<Course> courses = [];
+    for (final day in json['listeJourCdt']) {
+      for (final course in day['listeSeances']) {
+        final List<dynamic> homeworks = [];
+        if (course['aRendre'] != null) {
+          for (final homework in course['aRendre']) {
+            homeworks.add(homework['uid']);
           }
         }
-        ret.add(Course(
-            subject: e['matiere'],
-            homeworks: hw,
-            content: e['titre'],
-            startDate: DateTime.fromMillisecondsSinceEpoch(e['hdeb']),
-            endDate: DateTime.fromMillisecondsSinceEpoch(e['hfin'])));
+        courses.add(Course(
+            subject: course['matiere'],
+            homeworks: homeworks,
+            content: course['titre'],
+            startDate: DateTime.fromMillisecondsSinceEpoch(course['hdeb']),
+            endDate: DateTime.fromMillisecondsSinceEpoch(course['hfin'])));
       }
     }
-    return ret;
+    return courses;
   }
 
   ///To mark an homework as done or not
   ///A full hw (got by the getFullHomework() method isn't needed
-  Future<void> setHomeWorkStatus(HomeWork hw, bool newState) async {
-    var json = (await _invokeApi('contenuActivite/idetablissement/${info.id}/${hw.sessionUuid}/${hw.uuid}/', 'PUT',
-            body: '{"flagRealise":$newState}'))
+  Future<void> setHomeWorkStatus(HomeWork homework, bool status) async {
+    var json = (await _invokeApi(
+            'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/', 'PUT',
+            body: '{"flagRealise":$status}'))
         .body;
   }
 

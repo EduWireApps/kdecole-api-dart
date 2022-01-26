@@ -18,24 +18,28 @@ class Client {
   }
 
   Future<void> setUserData() async {
-    var json = jsonDecode((await _invokeApi('infoutilisateur/', 'GET')).body);
+    final Map<String, dynamic> json = jsonDecode((await _invokeApi('infoutilisateur/', 'GET')).body);
 
     ///bad code, but api bad too
-    dynamic a;
-    while (true) {
-      a = jsonDecode((await _invokeApi(
+    Map<String, dynamic> res = {};
+    bool continueLoop = true;
+    while (continueLoop) {
+      res = jsonDecode((await _invokeApi(
               'consulterAbsences/idetablissement/${int.parse(json['idEtablissementSelectionne'])}/', 'GET'))
           .body);
-      if (a['errmsg'] == null) break;
+      if (res['errmsg'] == null) {
+        continueLoop = false;
+      }
+
       await Future.delayed(Duration(seconds: 1));
     }
     info = UserInfo(
       fullName: json['nom'],
       etab: json['etabs'][0]['nom'],
       etabId: int.parse(json['idEtablissementSelectionne']),
-      id: a['codeEleve'],
+      id: res['codeEleve'],
     );
-    var p = json['etabs'][0]['permissions'].toString().split(' ');
+    final List<String> p = json['etabs'][0]['permissions'].toString().split(' ');
     perms = Perms(
       emails: p.contains('messagerie'),
       marks: p.contains('vsc-releves-consulter'),
@@ -47,47 +51,48 @@ class Client {
 
   ///Login with temporary username and password
   Future<String> login(String username, String password) async {
-    var rep = await _invokeApi(username + '/' + password, 'GET', headers: {});
-    var json = jsonDecode(rep.body);
+    final Response res = await _invokeApi(username + '/' + password, 'GET', headers: {});
+    final Map<String, dynamic> json = jsonDecode(res.body);
     if (json['authtoken'] == null) {
       return 'An error as occured';
     } else {
       token = json['authtoken'];
       headers.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
-      return 'Succesfuly connected';
+      return 'Successfully connected';
     }
   }
 
   Future<List<Actuality>> getActualities() async {
-    var rep = jsonDecode((await _invokeApi('actualites/idetablissement/${info.etabId}/', 'GET')).body);
-    var ret = <Actuality>[];
-    for (var v in rep) {
-      if (v['uid'].toString().contains('-')) {
-        ret.add(Actuality(
-            author: v['auteur'],
-            title: v['titre'],
-            uid: v['uid'],
-            codeEmetteur: v['codeEmetteur'],
-            date: DateTime.fromMillisecondsSinceEpoch(v['date'])));
+    final List<Map<String, dynamic>> res =
+        jsonDecode((await _invokeApi('actualites/idetablissement/${info.etabId}/', 'GET')).body);
+    final List<Actuality> actualities = [];
+    for (final actuality in res) {
+      if (actuality['uid'].toString().contains('-')) {
+        actualities.add(Actuality(
+            author: actuality['auteur'],
+            title: actuality['titre'],
+            uid: actuality['uid'],
+            codeEmetteur: actuality['codeEmetteur'],
+            date: DateTime.fromMillisecondsSinceEpoch(actuality['date'])));
       }
     }
-    return ret;
+    return actualities;
   }
 
   Future<List<Absence>> getAbsences() async {
-    var rep = jsonDecode(
+    final List<Map<String, dynamic>> res = jsonDecode(
         (await _invokeApi('consulterAbsences/idetablissement/${info.etabId}/', 'GET')).body)['listeAbsences'];
-    var ret = <Absence>[];
-    for (var v in rep) {
-      ret.add(Absence(
-          dateFin: DateTime.fromMillisecondsSinceEpoch(v['dateFin']),
-          motif: v['motif'] ?? '',
-          type: v['type'],
-          matiere: v['matiere'],
-          dateDebut: DateTime.fromMillisecondsSinceEpoch(v['dateDebut']),
-          justifiee: v['justifiee']));
+    final List<Absence> absences = [];
+    for (final absence in res) {
+      absences.add(Absence(
+          dateFin: DateTime.fromMillisecondsSinceEpoch(absence['dateFin']),
+          motif: absence['motif'] ?? '',
+          type: absence['type'],
+          matiere: absence['matiere'],
+          dateDebut: DateTime.fromMillisecondsSinceEpoch(absence['dateDebut']),
+          justifiee: absence['justifiee']));
     }
-    return ret;
+    return absences;
   }
 
   Future<Actuality> getFullActuality({required Actuality actuality}) async {

@@ -4,7 +4,7 @@ part of kdecole_api;
 class Client {
   final String url;
   String token = "";
-  late Perms perms;
+  late Permissions permissions;
   final Map<String, String> headers = {};
   late UserInfo info;
 
@@ -40,7 +40,7 @@ class Client {
       id: res['codeEleve'],
     );
     final List<String> p = json['etabs'][0]['permissions'].toString().split(' ');
-    perms = Perms(
+    permissions = Permissions(
       emails: p.contains('messagerie'),
       marks: p.contains('vsc-releves-consulter'),
       timetable: p.contains('cdt-calendrier'),

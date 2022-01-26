@@ -1,13 +1,13 @@
 part of kdecole_api;
 
-class Perms {
+class Permissions {
   final bool emails;
   final bool marks;
   final bool timetable;
   final bool homeworks;
   final bool schoolLife;
 
-  Perms({
+  Permissions({
     required this.emails,
     required this.marks,
     required this.timetable,

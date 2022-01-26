@@ -15,7 +15,7 @@ part 'src/entities/user_info.dart';
 part 'src/entities/actuality.dart';
 part 'src/entities/course.dart';
 part 'src/entities/grade.dart';
-part 'src/entities/perms.dart';
+part 'src/entities/permissions.dart';
 part 'src/entities/absence.dart';
 part 'src/entities/subject.dart';
 part 'src/entities/period.dart';

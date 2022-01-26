@@ -2,7 +2,7 @@ part of kdecole_api;
 
 class Subject {
   final List<Grade> grades;
-  final String name;
+  final String name, teacher;
   final double mid, midClass;
 
   const Subject({
@@ -10,5 +10,6 @@ class Subject {
     required this.name,
     required this.mid,
     required this.midClass,
+    required this.teacher,
   });
 }

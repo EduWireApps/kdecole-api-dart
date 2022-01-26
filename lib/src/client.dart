@@ -137,6 +137,7 @@ class Client {
             name: v['matiereLibelle'],
             mid: double.parse(v['moyenneEleve']),
             midClass: double.parse(v['moyenneClasse']),
+            teacher: v['enseignants'][0],
           ),
         );
       }

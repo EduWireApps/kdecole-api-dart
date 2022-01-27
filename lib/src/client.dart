@@ -8,7 +8,8 @@ class Client {
   final Map<String, String> headers = {};
   late UserInfo info;
 
-  Client({required this.url, required String username, required String password}) {
+  Client(
+      {required this.url, required String username, required String password}) {
     login(username, password);
   }
 
@@ -18,14 +19,16 @@ class Client {
   }
 
   Future<void> setUserData() async {
-    final Map<String, dynamic> json = jsonDecode((await _invokeApi('infoutilisateur/', 'GET')).body);
+    final Map<String, dynamic> json =
+        jsonDecode((await _invokeApi('infoutilisateur/', 'GET')).body);
 
     ///bad code, but api bad too
     Map<String, dynamic> res = {};
     bool continueLoop = true;
     while (continueLoop) {
       res = jsonDecode((await _invokeApi(
-              'consulterAbsences/idetablissement/${int.parse(json['idEtablissementSelectionne'])}/', 'GET'))
+              'consulterAbsences/idetablissement/${int.parse(json['idEtablissementSelectionne'])}/',
+              'GET'))
           .body);
       if (res['errmsg'] == null) {
         continueLoop = false;
@@ -39,7 +42,8 @@ class Client {
       etabId: int.parse(json['idEtablissementSelectionne']),
       id: res['codeEleve'],
     );
-    final List<String> p = json['etabs'][0]['permissions'].toString().split(' ');
+    final List<String> p =
+        json['etabs'][0]['permissions'].toString().split(' ');
     permissions = Permissions(
       emails: p.contains('messagerie'),
       marks: p.contains('vsc-releves-consulter'),
@@ -51,7 +55,8 @@ class Client {
 
   ///Login with temporary username and password
   Future<String> login(String username, String password) async {
-    final Response res = await _invokeApi(username + '/' + password, 'GET', headers: {});
+    final Response res =
+        await _invokeApi(username + '/' + password, 'GET', headers: {});
     final Map<String, dynamic> json = jsonDecode(res.body);
     if (json['authtoken'] == null) {
       return 'An error as occured';
@@ -63,8 +68,9 @@ class Client {
   }
 
   Future<List<Actuality>> getActualities() async {
-    final List<Map<String, dynamic>> res =
-        jsonDecode((await _invokeApi('actualites/idetablissement/${info.etabId}/', 'GET')).body);
+    final List<Map<String, dynamic>> res = jsonDecode(
+        (await _invokeApi('actualites/idetablissement/${info.etabId}/', 'GET'))
+            .body);
     final List<Actuality> actualities = [];
     for (final actuality in res) {
       if (actuality['uid'].toString().contains('-')) {
@@ -80,8 +86,9 @@ class Client {
   }
 
   Future<List<Absence>> getAbsences() async {
-    final List<Map<String, dynamic>> res = jsonDecode(
-        (await _invokeApi('consulterAbsences/idetablissement/${info.etabId}/', 'GET')).body)['listeAbsences'];
+    final List<Map<String, dynamic>> res = jsonDecode((await _invokeApi(
+            'consulterAbsences/idetablissement/${info.etabId}/', 'GET'))
+        .body)['listeAbsences'];
     final List<Absence> absences = [];
     for (final absence in res) {
       absences.add(Absence(
@@ -96,21 +103,24 @@ class Client {
   }
 
   Future<Actuality> getFullActuality({required Actuality actuality}) async {
-    final Map<String, dynamic> json =
-        jsonDecode((await _invokeApi('contenuArticle/article/${actuality.uid}/', 'GET')).body);
+    final Map<String, dynamic> json = jsonDecode(
+        (await _invokeApi('contenuArticle/article/${actuality.uid}/', 'GET'))
+            .body);
     return Actuality(
       title: json['titre'],
       date: DateTime.fromMillisecondsSinceEpoch(json['date']),
       author: json['auteur'],
-      content: parse(HtmlUnescape().convert(json['codeHTML'])).documentElement!.text,
+      content:
+          parse(HtmlUnescape().convert(json['codeHTML'])).documentElement!.text,
       codeEmetteur: actuality.codeEmetteur,
       uid: actuality.uid,
     );
   }
 
   Future<List<Period>> getGrades() async {
-    final List<Map<String, dynamic>> res =
-        jsonDecode((await _invokeApi('consulterReleves/idetablissement/${info.etabId}/', 'GET')).body);
+    final List<Map<String, dynamic>> res = jsonDecode((await _invokeApi(
+            'consulterReleves/idetablissement/${info.etabId}/', 'GET'))
+        .body);
     final List<Period> periods = [];
     for (final period in res) {
       final List<Subject> subjects = [];
@@ -154,9 +164,10 @@ class Client {
   }
 
   ///Get the messaging emails, only a preview of them
-  Future<List<Email>?> getEmails() async {
+  Future<List<Email>> getEmails() async {
     final HtmlUnescape convert = HtmlUnescape();
-    final Map<String, dynamic> json = jsonDecode((await _invokeApi('messagerie/boiteReception/', 'GET')).body);
+    final Map<String, dynamic> json = jsonDecode(
+        (await _invokeApi('messagerie/boiteReception/', 'GET')).body);
     final List<Email> emails = [];
     for (final email in json['communications'] as List<dynamic>) {
       emails.add(Email(
@@ -173,15 +184,18 @@ class Client {
   ///Get all the details of an Email, with the full body
   Future<Email> getFullEmail(Email email) async {
     final List<Message> messages = [];
-    final Map<String, dynamic> json =
-        jsonDecode((await _invokeApi('messagerie/communication/' + email.id.toString() + '/', 'GET')).body);
+    final Map<String, dynamic> json = jsonDecode((await _invokeApi(
+            'messagerie/communication/' + email.id.toString() + '/', 'GET'))
+        .body);
     final HtmlUnescape convert = HtmlUnescape();
     for (final message in json['participations'] as List<dynamic>) {
-      final String parsedString = parse(convert.convert(message['corpsMessage'])).documentElement!.text;
+      final String parsedString =
+          parse(convert.convert(message['corpsMessage'])).documentElement!.text;
       messages.add(Message(
           body: parsedString,
           sender: message['redacteur']['libelle'],
-          date: DateTime.fromMillisecondsSinceEpoch(int.parse(message['dateEnvoi'].toString()))));
+          date: DateTime.fromMillisecondsSinceEpoch(
+              int.parse(message['dateEnvoi'].toString()))));
     }
 
     return Email(
@@ -195,7 +209,9 @@ class Client {
 
   ///Send an email
   Future<void> sendEmail(String body, Email email) async {
-    await _invokeApi('messagerie/communication/nouvelleParticipation/${email.id}/', 'PUT', body: body);
+    await _invokeApi(
+        'messagerie/communication/nouvelleParticipation/${email.id}/', 'PUT',
+        body: body);
   }
 
   ///Mark as read an Email
@@ -205,7 +221,8 @@ class Client {
 
   ///Delete communication
   Future<void> deleteMail(Email email) async {
-    await _invokeApi('messagerie/communication/supprimer/${email.id}/', 'DELETE');
+    await _invokeApi(
+        'messagerie/communication/supprimer/${email.id}/', 'DELETE');
   }
 
   ///Report an email, don't abuse of it
@@ -215,8 +232,9 @@ class Client {
 
   ///Get the homeworks
   Future<List<Homework>> getHomeworks() async {
-    final Map<String, dynamic> json =
-        jsonDecode((await _invokeApi('travailAFaire/idetablissement/${info.id}/', 'GET')).body);
+    final Map<String, dynamic> json = jsonDecode(
+        (await _invokeApi('travailAFaire/idetablissement/${info.id}/', 'GET'))
+            .body);
     final List<Homework> homeworks = [];
     for (final homework in json['listeTravaux'] as List<dynamic>) {
       var date = DateTime.fromMillisecondsSinceEpoch(homework['date']);
@@ -240,10 +258,12 @@ class Client {
   Future<Homework> getFullHomework(Homework homework) async {
     final HtmlUnescape convert = HtmlUnescape();
     final Map<String, dynamic> json = jsonDecode((await _invokeApi(
-            'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/', 'GET'))
+            'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/',
+            'GET'))
         .body);
     print(json);
-    final String parsedString = parse(convert.convert(json['codeHTML'])).documentElement!.text;
+    final String parsedString =
+        parse(convert.convert(json['codeHTML'])).documentElement!.text;
     return Homework(
         content: parsedString,
         type: json['type'],
@@ -257,8 +277,9 @@ class Client {
 
   ///Get the timetable of the week
   Future<List<Course>> getTimetable() async {
-    final Map<String, dynamic> json =
-        jsonDecode((await _invokeApi('calendrier/idetablissement/${info.id}/', 'GET')).body);
+    final Map<String, dynamic> json = jsonDecode(
+        (await _invokeApi('calendrier/idetablissement/${info.id}/', 'GET'))
+            .body);
     final List<Course> courses = [];
     for (final day in json['listeJourCdt']) {
       for (final course in day['listeSeances']) {
@@ -283,7 +304,8 @@ class Client {
   ///A full hw (got by the getFullHomework() method isn't needed
   Future<void> setHomeworkStatus(Homework homework, bool status) async {
     var json = (await _invokeApi(
-            'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/', 'PUT',
+            'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/',
+            'PUT',
             body: '{"flagRealise":$status}'))
         .body;
   }
@@ -293,7 +315,8 @@ class Client {
     _invokeApi('desactivation/', 'GET');
   }
 
-  Future<Response> _invokeApi(String path, String method, {Map<String, String>? headers, Object? body}) async {
+  Future<Response> _invokeApi(String path, String method,
+      {Map<String, String>? headers, Object? body}) async {
     final Uri uri = Uri.parse(url + path);
     headers ??= this.headers;
     switch (method) {

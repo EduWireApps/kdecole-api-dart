@@ -1,10 +1,10 @@
 part of kdecole_api;
 
 class Period {
-  int id;
-  String className;
-  String periodName;
-  List<Subject> subjects;
+  final int id;
+  final String className;
+  final String periodName;
+  final List<Subject> subjects;
 
   Period({
     required this.id,

@@ -4,9 +4,10 @@ class Email {
   final String title;
   final String body;
   final String sender;
-  final String receivers;
+  final List<String> receivers;
   final int id;
   final List<Message> messages;
+  final bool read;
 
   Email(
       {required this.title,
@@ -14,5 +15,6 @@ class Email {
       required this.sender,
       required this.receivers,
       required this.id,
-      required this.messages});
+      required this.messages,
+      required this.read});
 }

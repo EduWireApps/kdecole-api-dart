@@ -174,9 +174,10 @@ class Client {
           title: convert.convert(email['objet']),
           body: convert.convert(email['premieresLignes']),
           sender: convert.convert(email['expediteurInitial']['libelle']),
-          receivers: '',
+          receivers: [],
           id: email['id'],
-          messages: []));
+          messages: [],
+          read: email['etatLecture']));
     }
     return emails;
   }
@@ -184,6 +185,7 @@ class Client {
   ///Get all the details of an Email, with the full body
   Future<Email> getFullEmail(Email email) async {
     final List<Message> messages = [];
+    final List<String> receivers = [];
     final Map<String, dynamic> json = jsonDecode((await _invokeApi(
             'messagerie/communication/' + email.id.toString() + '/', 'GET'))
         .body);
@@ -197,14 +199,18 @@ class Client {
           date: DateTime.fromMillisecondsSinceEpoch(
               int.parse(message['dateEnvoi'].toString()))));
     }
+    for (final r in json['participants']) {
+      receivers.add(convert.convert(r['libelle']));
+    }
 
     return Email(
         title: convert.convert(json['objet']),
         body: convert.convert(json['premieresLignes']),
         sender: convert.convert(json['expediteurInitial']['libelle']),
-        receivers: convert.convert(json['participants'][0]['libelle']),
+        receivers: receivers,
         id: json['id'],
-        messages: messages);
+        messages: messages,
+        read: json['etatLecture']);
   }
 
   ///Send an email

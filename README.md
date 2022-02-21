@@ -9,13 +9,13 @@ First, you need to create a Client() object : <br>
 ### **LOGIN AND PASSWORD ARE NOT YOUR ENT ONES. TEMPORARY USERNAME AND PASSWORD GIVEN TO INIT THE MOBILE APP SHALL BE USED**
 
 ````dart
-var client = Client(Urls.<your CAS>, 'your username', 'your password');
+var client = Client(url: '<your CAS url', username: '<your username>', password: '<your password');
 ````
 
 or if you already have a token :
 
 ````dart
-var client = Client.fromToken('tokennnnnn', Urls.<your CAS>);
+var client = Client.fromToken(token: '<your token', url: 'your CAS url');
 ````
 
 Now you're logged in !

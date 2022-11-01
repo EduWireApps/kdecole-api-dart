@@ -54,16 +54,16 @@ class Client {
   }
 
   ///Login with temporary username and password
-  Future<String> login(String username, String password) async {
+  Future<bool> login(String username, String password) async {
     final Response res =
-        await _invokeApi(username + '/' + password, 'GET', headers: {});
+        await _invokeApi('activation/$username/$password/', 'GET', headers: {});
     final Map<String, dynamic> json = jsonDecode(res.body);
     if (json['authtoken'] == null) {
-      return 'An error as occured';
+      return false;
     } else {
       token = json['authtoken'];
       headers.addAll({'X-Kdecole-Auth': token, 'X-Kdecole-Vers': '3.7.14'});
-      return 'Successfully connected';
+      return true;
     }
   }
 
@@ -79,7 +79,10 @@ class Client {
             title: actuality['titre'],
             uid: actuality['uid'],
             codeEmetteur: actuality['codeEmetteur'],
-            date: DateTime.fromMillisecondsSinceEpoch(actuality['date'])));
+            date: DateTime.fromMillisecondsSinceEpoch(actuality['date']),
+            isComplete: false,
+            type: (actuality['type'] as String).toLowerCase()
+        ));
       }
     }
     return actualities;
@@ -103,8 +106,10 @@ class Client {
   }
 
   Future<Actuality> getFullActuality({required Actuality actuality}) async {
+    if(actuality.isComplete) return actuality;
+
     final Map<String, dynamic> json = jsonDecode(
-        (await _invokeApi('contenuArticle/article/${actuality.uid}/', 'GET'))
+        (await _invokeApi('contenuArticle/${actuality.type}/${actuality.uid}/', 'GET'))
             .body);
     return Actuality(
       title: json['titre'],
@@ -114,6 +119,8 @@ class Client {
           parse(HtmlUnescape().convert(json['codeHTML'])).documentElement!.text,
       codeEmetteur: actuality.codeEmetteur,
       uid: actuality.uid,
+      isComplete: true,
+      type: actuality.type
     );
   }
 
@@ -177,17 +184,19 @@ class Client {
           receivers: [],
           id: email['id'],
           messages: [],
-          read: email['etatLecture']));
+          read: email['etatLecture'],
+          isComplete: false));
     }
     return emails;
   }
 
   ///Get all the details of an Email, with the full body
   Future<Email> getFullEmail(Email email) async {
+    if(email.isComplete) return email;
     final List<Message> messages = [];
     final List<String> receivers = [];
     final Map<String, dynamic> json = jsonDecode((await _invokeApi(
-            'messagerie/communication/' + email.id.toString() + '/', 'GET'))
+            'messagerie/communication/${email.id}/', 'GET'))
         .body);
     final HtmlUnescape convert = HtmlUnescape();
     for (final message in json['participations'] as List<dynamic>) {
@@ -210,30 +219,31 @@ class Client {
         receivers: receivers,
         id: json['id'],
         messages: messages,
-        read: json['etatLecture']);
+        read: json['etatLecture'],
+        isComplete: true);
   }
 
   ///Send an email
-  Future<void> sendEmail(String body, Email email) async {
-    await _invokeApi(
+  void sendEmail(String body, Email email) {
+    _invokeApi(
         'messagerie/communication/nouvelleParticipation/${email.id}/', 'PUT',
         body: body);
   }
 
   ///Mark as read an Email
-  Future<void> markAsRead(Email email) async {
-    await _invokeApi('messagerie/communication/lu/${email.id}/', 'PUT');
+  void markAsRead(Email email) {
+    _invokeApi('messagerie/communication/lu/${email.id}/', 'PUT');
   }
 
   ///Delete communication
-  Future<void> deleteMail(Email email) async {
-    await _invokeApi(
+  void deleteMail(Email email) {
+    _invokeApi(
         'messagerie/communication/supprimer/${email.id}/', 'DELETE');
   }
 
   ///Report an email, don't abuse of it
-  Future<void> reportMail(Email email) async {
-    await _invokeApi('messagerie/communication/signaler/${email.id}/', 'PUT');
+  void reportMail(Email email) {
+    _invokeApi('messagerie/communication/signaler/${email.id}/', 'PUT');
   }
 
   ///Get the homeworks
@@ -253,7 +263,8 @@ class Client {
             isRealised: e['flagRealise'],
             uuid: int.parse(e['uid']),
             sessionUuid: int.parse(e['uidSeance']),
-            date: date));
+            date: date,
+            isComplete: false));
       }
     }
 
@@ -262,6 +273,8 @@ class Client {
 
   ///Get all the details of a Homework
   Future<Homework> getFullHomework(Homework homework) async {
+    if(homework.isComplete) return homework;
+
     final HtmlUnescape convert = HtmlUnescape();
     final Map<String, dynamic> json = jsonDecode((await _invokeApi(
             'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/',
@@ -278,7 +291,8 @@ class Client {
         isRealised: json['flagRealise'],
         uuid: homework.uuid,
         sessionUuid: homework.sessionUuid,
-        date: DateTime.fromMillisecondsSinceEpoch(json['date']));
+        date: DateTime.fromMillisecondsSinceEpoch(json['date']),
+        isComplete: true);
   }
 
   ///Get the timetable of the week
@@ -308,12 +322,11 @@ class Client {
 
   ///To mark an homework as done or not
   ///A full hw (got by the getFullHomework() method isn't needed
-  Future<void> setHomeworkStatus(Homework homework, bool status) async {
-    var json = (await _invokeApi(
+  void setHomeworkStatus(Homework homework, bool status) {
+    _invokeApi(
             'contenuActivite/idetablissement/${info.id}/${homework.sessionUuid}/${homework.uuid}/',
             'PUT',
-            body: '{"flagRealise":$status}'))
-        .body;
+            body: '{"flagRealise":$status}');
   }
 
   ///To unlog you, you need to re-get a token after that
@@ -344,7 +357,7 @@ class Client {
 
 /// THIS IS A LIST OF ALL THE URLS
 /// 
-///      agora06
+///      agora06:
 ///        https://mobilite.agora06.fr/mobilite/
 ///      arsene76:
 ///        https://mobilite.arsene76.fr/mobilite/
@@ -364,6 +377,8 @@ class Client {
 ///        https://mobilite.ent27.fr/mobilite/
 ///      entCreuse:
 ///        https://mobilite.entcreuse.fr/mobilite/
+///      entValDeMarne:
+///        https://mobilite.entvaldemarne.skolengo.com/mobilite/
 ///      kosmosEducation:
 ///        https://mobilite.kosmoseducation.com/mobilite/
 ///      monBureauNumerique:
@@ -374,7 +389,9 @@ class Client {
 ///        https://mobilite.mon-ent-occitanie.fr/mobilite/
 ///      savoirsNumeriques62:
 ///        https://mobilite.savoirsnumeriques62.fr/mobilite/
-///      webCollegeSeineSaintDenis
+///      webCollegeSeineSaintDenis:
 ///        https://mobilite.webcollege.seinesaintdenis.fr/mobilite/
-/// 
-
+///      schulportalOstbelgien:
+///        https://mobilite.schulen.be/mobilite/
+///      formationSkolengo:
+///        https://mobilite.formation.skolengo.com/mobilite

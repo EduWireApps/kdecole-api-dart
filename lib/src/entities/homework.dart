@@ -9,6 +9,7 @@ class Homework {
   final int uuid;
   final int sessionUuid;
   final DateTime date;
+  final bool isComplete;
 
   Homework(
       {required this.content,
@@ -18,5 +19,6 @@ class Homework {
       required this.isRealised,
       required this.uuid,
       required this.sessionUuid,
-      required this.date});
+      required this.date,
+      required this.isComplete});
 }

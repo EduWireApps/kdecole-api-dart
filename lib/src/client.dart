@@ -327,17 +327,17 @@ class Client {
     headers ??= this.headers;
     switch (method) {
       case 'GET':
-        return await http.get(uri, headers: headers);
+        return await get(uri, headers: headers);
       case 'POST':
-        return await http.post(uri, headers: headers, body: body);
+        return await post(uri, headers: headers, body: body);
       case 'DELETE':
-        return await http.delete(uri, headers: headers, body: body);
+        return await delete(uri, headers: headers, body: body);
       case 'PUT':
-        return await http.put(uri, headers: headers, body: body);
+        return await put(uri, headers: headers, body: body);
       case 'PATCH':
-        return await http.patch(uri, headers: headers, body: body);
+        return await patch(uri, headers: headers, body: body);
       default:
-        return await http.get(uri, headers: headers);
+        return await get(uri, headers: headers);
     }
   }
 }

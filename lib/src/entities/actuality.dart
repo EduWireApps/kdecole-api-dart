@@ -7,7 +7,7 @@ class Actuality {
   final String codeEmetteur;
   final DateTime date;
   final String? content;
-  final bool isComplete;
+  final bool contentFetched;
   final String type;
 
   Actuality({
@@ -16,7 +16,7 @@ class Actuality {
     required this.uid,
     required this.codeEmetteur,
     required this.date,
-    required this.isComplete,
+    required this.contentFetched,
     required this.type,
     this.content,
   });

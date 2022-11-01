@@ -8,7 +8,7 @@ class Email {
   final int id;
   final List<Message> messages;
   final bool read;
-  final bool isComplete;
+  final bool contentFetched;
 
   Email(
       {required this.title,
@@ -18,5 +18,5 @@ class Email {
       required this.id,
       required this.messages,
       required this.read,
-      required this.isComplete});
+      required this.contentFetched});
 }

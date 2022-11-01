@@ -80,7 +80,7 @@ class Client {
             uid: actuality['uid'],
             codeEmetteur: actuality['codeEmetteur'],
             date: DateTime.fromMillisecondsSinceEpoch(actuality['date']),
-            isComplete: false,
+            contentFetched: false,
             type: (actuality['type'] as String).toLowerCase()
         ));
       }
@@ -106,7 +106,7 @@ class Client {
   }
 
   Future<Actuality> getFullActuality({required Actuality actuality}) async {
-    if(actuality.isComplete) return actuality;
+    if(actuality.contentFetched) return actuality;
 
     final Map<String, dynamic> json = jsonDecode(
         (await _invokeApi('contenuArticle/${actuality.type}/${actuality.uid}/', 'GET'))
@@ -119,7 +119,7 @@ class Client {
           parse(HtmlUnescape().convert(json['codeHTML'])).documentElement!.text,
       codeEmetteur: actuality.codeEmetteur,
       uid: actuality.uid,
-      isComplete: true,
+      contentFetched: true,
       type: actuality.type
     );
   }
@@ -185,14 +185,14 @@ class Client {
           id: email['id'],
           messages: [],
           read: email['etatLecture'],
-          isComplete: false));
+          contentFetched: false));
     }
     return emails;
   }
 
   ///Get all the details of an Email, with the full body
   Future<Email> getFullEmail(Email email) async {
-    if(email.isComplete) return email;
+    if(email.contentFetched) return email;
     final List<Message> messages = [];
     final List<String> receivers = [];
     final Map<String, dynamic> json = jsonDecode((await _invokeApi(
@@ -220,7 +220,7 @@ class Client {
         id: json['id'],
         messages: messages,
         read: json['etatLecture'],
-        isComplete: true);
+        contentFetched: true);
   }
 
   ///Send an email
@@ -264,7 +264,7 @@ class Client {
             uuid: int.parse(e['uid']),
             sessionUuid: int.parse(e['uidSeance']),
             date: date,
-            isComplete: false));
+            contentFetched: false));
       }
     }
 
@@ -273,7 +273,7 @@ class Client {
 
   ///Get all the details of a Homework
   Future<Homework> getFullHomework(Homework homework) async {
-    if(homework.isComplete) return homework;
+    if(homework.contentFetched) return homework;
 
     final HtmlUnescape convert = HtmlUnescape();
     final Map<String, dynamic> json = jsonDecode((await _invokeApi(
@@ -292,7 +292,7 @@ class Client {
         uuid: homework.uuid,
         sessionUuid: homework.sessionUuid,
         date: DateTime.fromMillisecondsSinceEpoch(json['date']),
-        isComplete: true);
+        contentFetched: true);
   }
 
   ///Get the timetable of the week

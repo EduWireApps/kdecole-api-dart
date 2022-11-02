@@ -2,10 +2,9 @@ library kdecole_api;
 
 import 'dart:convert';
 
-import 'package:html/parser.dart';
+import 'package:http/http.dart';
 import 'package:html_unescape/html_unescape.dart';
-import 'package:http/http.dart' as http;
-import 'package:request/request.dart';
+import 'package:html/parser.dart';
 
 part 'src/client.dart';
 part 'src/entities/email.dart';

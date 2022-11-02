@@ -7,6 +7,8 @@ class Actuality {
   final String codeEmetteur;
   final DateTime date;
   final String? content;
+  final bool contentFetched;
+  final String type;
 
   Actuality({
     required this.author,
@@ -14,6 +16,8 @@ class Actuality {
     required this.uid,
     required this.codeEmetteur,
     required this.date,
+    required this.contentFetched,
+    required this.type,
     this.content,
   });
 }
